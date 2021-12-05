@@ -1,0 +1,37 @@
+Étapes principales
+––––––––––––––––––
+
+Réorganisation du code
+
+Boutons :
+arrow + Gérer le cas où les Tiles ne sont pas encore montées
+demo
+reset z-order
+
+Modifier le système de coordonnées et supprimer "board" en tant que rectangle qui bouge.
+
+Convertir en TypeScript
+
+
+
+Étapes secondaires
+––––––––––––––––––
+
+Logo
+
+ECHAP pour quitter le mode texte
+
+Nouvelle tuile centrée et pas coin haut-gauche
+
+Triangle en bas de TileMenu
+
+Ajuster la position de TileMenu en fonction de la place sur l'écran
+
+Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
+
+
+
+Étapes terminées
+––––––––––––––––
+
+TileMenu fonctionnel
