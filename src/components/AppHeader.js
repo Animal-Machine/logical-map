@@ -1,5 +1,5 @@
 
-function AppHeader({ arrows, setArrows }) {
+function AppHeader({ arrows, setArrows, switchArrowMode }) {
 
   function demo() {
     const demoTiles = [
@@ -55,7 +55,7 @@ function AppHeader({ arrows, setArrows }) {
   return(
     <header className="App-header">
       <button
-        onClick={addArrow}
+        onClick={switchArrowMode}
       >
         Arrow
       </button>

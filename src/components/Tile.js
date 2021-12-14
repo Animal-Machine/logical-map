@@ -1,10 +1,25 @@
 import { useState, useEffect, useRef, forwardRef } from 'react'
 import TileMenu from './TileMenu'
 
-const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, updateText }, ref) => {
+const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, updateText, arrowMode, setArrowMode }, ref) => {
 
   const [readonly, setReadonly] = useState(true);
     // state used for edition mode
+
+  function onMouseDown(e) {
+    if (arrowMode) {
+      // In arrow mode, place arrow:
+      if (arrowMode === true) {
+        setArrowMode(tile.id);
+      }
+    } else {
+      // Drag tile only with left button:
+      e.button===0 && readonly && startDraggingTile(tile.id, e.clientX, e.clientY);
+    }
+  }
+
+
+  // Opening and closing the TileMenu sub-component
 
   const [openedMenu, setOpenedMenu] = useState(false);
     // state used to display —or not— the TileMenu component
@@ -12,6 +27,11 @@ const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, u
   const autoCloseTimerIdRef = useRef();
     // ref to store timeout ID and clear it
 
+  //TODO USEFUL à réexaminer. Pour quelle raison ai-je mis openedMenu en paramètre ?
+  // Et quand je mets :
+  //useEffect((openedMenu, closeMenu) => {
+  // Il y a un warning qui disparaît.
+  // Par ailleurs, il y a peut-être des conclusions à tirer de ce que j'ai appris sur trackmouse (voir help.js)
   useEffect((openedMenu) => {
     return () => {
       window.removeEventListener('mousedown', closeMenu);
@@ -43,6 +63,7 @@ const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, u
     clearTimeout(autoCloseTimerIdRef.current);
   }
 
+
   return(
     <>
 
@@ -69,22 +90,27 @@ const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, u
       <textarea
         ref = {ref}
         className = {"Tile" + (tile.truthValue ? " True" : (tile.truthValue===false?" False":""))
+                             + (arrowMode ? " ArrowMode" : "")
                              + (readonly ? "" : " Edition")}
         style = {{
-          left: tile.x+1920, //TODO utiliser initialBoardPosition
+          left: tile.x+1920, //TODO utiliser initialBoardPosition (et pareil dans Arrow.js)
           top: tile.y+1080,
           zIndex: tile.z,
         }}
 
-        // Drag tile only with left button:
-        onMouseDown = {e => {e.button===0 && readonly && startDraggingTile(tile.id, e.clientX, e.clientY);}}
+        // Drag tile or place arrow:
+        onMouseDown = {onMouseDown}
 
-        onContextMenu = {openMenu}
+        // Open tile menu (if not in arrow mode):
+        onContextMenu = {() => {
+          if (!arrowMode) {openMenu()}
+        }}
 
-        // Enter text edition mode:
+        // Enter text edition mode (overrides arrow mode):
         onDoubleClick = {e => {
           e.stopPropagation();
           setReadonly(false);
+          setArrowMode(false);
         }}
 
         // Update state when user writes text:

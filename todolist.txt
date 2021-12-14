@@ -1,7 +1,7 @@
 Étapes principales
 ––––––––––––––––––
 
-Réorganisation du code
+Là où j'en suis : La réorganisation du code va devenir nécessaire, en particulier le système de coordonnées et ce qui concerne les flèches
 
 Boutons :
 arrow + Gérer le cas où les Tiles ne sont pas encore montées
@@ -10,7 +10,13 @@ reset z-order
 
 Modifier le système de coordonnées et supprimer "board" en tant que rectangle qui bouge.
 
+Examiner à nouveau mon useEffect() avec openedMenu dans Tile.js
+
+Examiner attentivement ceci et modifier mon code : console.log(getEventListeners(window));
+
 Convertir en TypeScript
+
+Regarder comment mettre à jour React
 
 
 

@@ -4,7 +4,24 @@ import Board from './components/Board'
 import AppHeader from './components/AppHeader'
 
 function App() {
-  window.addEventListener('contextmenu', e => e.preventDefault());
+
+  const preventDef = e => e.preventDefault();
+  const keydown = e => {
+    if (e.code === "Escape") {
+      setArrowMode(false);
+    }
+  }
+
+  useEffect(() => {
+    // On Mount:
+    window.addEventListener('contextmenu', preventDef);
+    window.addEventListener('keydown', keydown);
+    return () => {
+      // On Unmount:
+      window.removeEventListener('contextmenu', preventDef);
+      window.removeEventListener('keydown', keydown);
+    }
+  }, [])
 
 
   // Tiles State
@@ -16,9 +33,6 @@ function App() {
     const data = await res.json();
     return data;
   };
-
-  useEffect(() => {
-  }, []); // I hesitated to add "tiles" but it created lag when dragging tiles
 
 
   // Arrows State
@@ -40,13 +54,34 @@ function App() {
     fetchArrows().then(setArrows).catch(e => console.error("Couldn't fetch data:", e));
   }, []); // I hesitated to add "tiles" but it created lag when dragging tiles
 
+
+  // Arrow Mode
+
+  const [arrowMode, setArrowMode] = useState(false);
+    // This state is set to false when not in arrow mode,
+    // set to true when in arrow mode without any tile selected,
+    // and set to an integer which is the tile id when a first tile
+    // has been clicked on. When a second tile is selected,
+    // the arrow is created and the arrow mode is exited.
+
+  function switchArrowMode() {
+    setArrowMode(!arrowMode);
+  }
+
   
   // Render
 
   return (
     <div className="App">
-      <AppHeader arrows={arrows} setArrows={setArrows} />
-      <Board tiles={tiles} setTiles={setTiles} fetchTiles={fetchTiles} arrows={arrows} />
+      <AppHeader arrows={arrows} setArrows={setArrows} switchArrowMode={switchArrowMode} />
+      <Board
+        tiles={tiles}
+        setTiles={setTiles}
+        fetchTiles={fetchTiles}
+        arrows={arrows}
+        arrowMode={arrowMode}
+        setArrowMode={setArrowMode}
+      />
       {/*<div style={{overflow:'hidden'}}>
         <Board arrows={arrows} />
       </div>*/}

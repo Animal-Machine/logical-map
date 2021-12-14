@@ -1,4 +1,4 @@
-export default function drawDoubleArrow(ctx, x1, y1, x3, y3) {
+export function drawDoubleArrow(ctx, x1, y1, x3, y3) {
 // Draws a double arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
 
   let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
@@ -24,3 +24,6 @@ export default function drawDoubleArrow(ctx, x1, y1, x3, y3) {
   ctx.lineTo(x3+2*c, y3-2*c);
 }
 
+export function getArrowHitbox(arrow) {
+  return [arrow.x + 1920, arrow.y + 1080, 100, 100]
+}

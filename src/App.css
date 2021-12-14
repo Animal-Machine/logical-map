@@ -22,6 +22,10 @@
   cursor: move;
 }
 
+.Board.ArrowMode {
+  background-color: #21262b;
+}
+
 .Board canvas {
   width: 100%;
   height: 100%;
@@ -48,11 +52,14 @@
   cursor: default;
 }
 
+.Tile.Edition, .Tile.ArrowMode:hover {
+  outline: 1px inset white;
+  box-shadow: 4px 4px 4px rgba(255,255,255,.5);
+}
+
 .Tile.Edition {
   color: white;
   font-weight: bold;
-  outline: 1px inset white;
-  box-shadow: 4px 4px 4px rgba(255,255,255,.5);
   -moz-user-select: auto;
   -webkit-user-select: auto;
   -ms-user-select: auto;

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import Tile from './Tile'
-import drawDoubleArrow from './drawArrow.js'
+import Arrow from './Arrow'
+import { drawDoubleArrow } from './drawArrow.js'
 
-function Board({ tiles, setTiles, fetchTiles, arrows }) {
+function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode }) {
  
   // Board State
 
@@ -64,8 +65,8 @@ function Board({ tiles, setTiles, fetchTiles, arrows }) {
     mouseRelToEltX = mouseX - tileInitialX;
     mouseRelToEltY = mouseY - tileInitialY;
 
-    window.onmousemove = dragTile;
-    window.onmouseup = stopDraggingTile;
+    window.addEventListener('mousemove', dragTile);
+    window.addEventListener('mouseup', stopDraggingTile);
   };
 
   function dragTile(e) {
@@ -85,8 +86,8 @@ function Board({ tiles, setTiles, fetchTiles, arrows }) {
       body: JSON.stringify({x: e.clientX-mouseRelToEltX,
                             y: e.clientY-mouseRelToEltY}), 
     });
-    window.onmousemove = null;
-    window.onmouseup = null;
+    window.removeEventListener('mousemove', dragTile);
+    window.removeEventListener('mouseup', stopDraggingTile);
     movingTileId = null;
   };
 
@@ -129,7 +130,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows }) {
       for (let j = 0; j < i; j++) {
         try {
           if (tiles[i].z === tiles[j].z) {
-            throw `These two tiles have the same z :\n${tiles[j].id} "${tiles[j].text}" and ${tiles[i].id} "${tiles[i].text}"`
+            throw new Error(`These two tiles have the same z :\n${tiles[j].id} "${tiles[j].text}" and ${tiles[i].id} "${tiles[i].text}"`);
           }
         } catch(e) {
           console.error(e)
@@ -205,18 +206,34 @@ function Board({ tiles, setTiles, fetchTiles, arrows }) {
 
   const tileRefs = useRef({}).current
   const saveTileRef = key => r => { tileRefs[key] = r }
-  
-  //var tileRefs = [useRef(null),useRef(null),useRef(null)]; // what I first did to store multiple tileRefs, not flexible
-  /*var tileRefs = [];
-  function updateRefs() {
-    while (tileRefs.length < tiles.length) {
-      tileRefs.push(useRef(null));
+    // references to the DOM elements related to the Tile components
+
+  const [arrowTip, setArrowTip] = useState([0, 0]);
+    // state used in arrow mode, represents the coordinates of the arrow tip
+
+  // Function to update it, active when the user must choose a second tile:
+  function updateArrowTip(e) {
+    const targetTileId = Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0];
+    if (targetTileId === undefined)
+    {
+      setArrowTip([e.clientX, e.clientY]);
+    }
+    else
+    {
+      let toX = Math.round(e.target.offsetLeft + e.target.offsetWidth/2);
+      let toY = e.target.offsetTop;
+      //if (fromY < toY) { fromY += tileFrom.offsetHeight; } else { toY += tileTo.offsetHeight; }
+      // impossible d'implémenter cette partie pour le moment… TODO refactoriser
+      setArrowTip([toX, toY]);
     }
   }
   useEffect(() => {
-    updateRefs();
-  }, [tiles]);*/
-  // what I tried next. But React doesn't allow to call useRef in a function other than a React component or (custom) hook
+    if (typeof arrowMode !== "boolean") {
+      window.addEventListener('mousemove', updateArrowTip);
+    }
+    return () => {window.removeEventListener('mousemove', updateArrowTip)};
+  }, [arrowMode]);
+
 
   function drawAllArrows(ctx) {
     for (let i in arrows) {
@@ -234,6 +251,18 @@ function Board({ tiles, setTiles, fetchTiles, arrows }) {
       let fromX = Math.round(tileFrom.offsetLeft + tileFrom.offsetWidth/2);
       let toX = Math.round(tileTo.offsetLeft + tileTo.offsetWidth/2);
 
+      drawDoubleArrow(ctx, fromX, fromY, toX, toY);
+    }
+    if (typeof arrowMode !== "boolean") {
+      let tileFrom = tileRefs[arrowMode-1];
+      let fromY = tileFrom.offsetTop;
+      //let toX = arrowTip[0];
+      //let toY = arrowTip[1];
+      // Énorme problème ici. Les deux lignes précédentes et suivantes ne fonctionnent pas simultanément. Soit la pointe est mal placée sur les tuiles, soit c'est sur le reste du tableau. Je ne peux pas invoquer board depuis updateArrowTip car il ne s'y actualise pas (le scope est figé une fois que la fonction est appelée).
+      let toX = arrowTip[0] - board.x;
+      let toY = arrowTip[1] - board.y;
+      let fromX = Math.round(tileFrom.offsetLeft + tileFrom.offsetWidth/2);
+      if (fromY < toY) { fromY += tileFrom.offsetHeight; }
       drawDoubleArrow(ctx, fromX, fromY, toX, toY);
     }
   }
@@ -257,12 +286,20 @@ function Board({ tiles, setTiles, fetchTiles, arrows }) {
 
   return (
     <div
-      className = "Board"
+      className = {"Board" + (arrowMode ? " ArrowMode" : "")}
       style = {{ left:board.x, top:board.y, width:board.w, height:board.h }}
       onMouseDown = {e => startDraggingBoard(e)}
-      onDoubleClick = {e => addTile(e.clientX, e.clientY)}
+      onDoubleClick = {e => {
+        if (!arrowMode) {addTile(e.clientX, e.clientY)}
+      }}
     >
       <canvas width={board.w} height={board.h}>{/*Insérer des éléments pour remplacer les flèches*/}</canvas>
+      {arrows.map(arrow =>
+        <Arrow
+          key={arrow.id}
+          arrow={arrow}
+        />
+      )}
       {tiles.map(tile =>
         <Tile
           key={tile.id}
@@ -272,6 +309,8 @@ function Board({ tiles, setTiles, fetchTiles, arrows }) {
           setTruthValue={setTruthValue}
           startDraggingTile={startDraggingTile}
           updateText={updateText}
+          arrowMode={arrowMode}
+          setArrowMode={setArrowMode}
         />
       )}
     </div>
