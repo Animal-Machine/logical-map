@@ -65,8 +65,25 @@ function App() {
     // the arrow is created and the arrow mode is exited.
 
   function switchArrowMode() {
-    setArrowMode(!arrowMode);
+    setArrowMode(m => !m);
   }
+
+  function addArrow(a, b) {
+    if (arrows.filter(arrow => (arrow.from===a && arrow.to===b)).length === 0) {
+      let newArrow = {
+        from: a,
+        to: b,
+      };
+      fetch('http://localhost:5000/arrows', {
+        method: 'POST',
+        headers: {'Content-type': 'application/json'},
+        body: JSON.stringify(newArrow),
+      });
+      setArrows(a => [...a, newArrow]);
+    }
+  }
+
+  //fetch(`http://localhost:5000/arrows/${id}`, {method: 'DELETE'});
 
   
   // Render
@@ -81,6 +98,7 @@ function App() {
         arrows={arrows}
         arrowMode={arrowMode}
         setArrowMode={setArrowMode}
+        addArrow={addArrow}
       />
       {/*<div style={{overflow:'hidden'}}>
         <Board arrows={arrows} />

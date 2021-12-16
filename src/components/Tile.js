@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, forwardRef } from 'react'
 import TileMenu from './TileMenu'
 
-const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, updateText, arrowMode, setArrowMode }, ref) => {
+const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile, updateText, arrowMode, setArrowMode }, ref) => {
 
   const [readonly, setReadonly] = useState(true);
     // state used for edition mode
@@ -27,18 +27,6 @@ const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, u
   const autoCloseTimerIdRef = useRef();
     // ref to store timeout ID and clear it
 
-  //TODO USEFUL à réexaminer. Pour quelle raison ai-je mis openedMenu en paramètre ?
-  // Et quand je mets :
-  //useEffect((openedMenu, closeMenu) => {
-  // Il y a un warning qui disparaît.
-  // Par ailleurs, il y a peut-être des conclusions à tirer de ce que j'ai appris sur trackmouse (voir help.js)
-  useEffect((openedMenu) => {
-    return () => {
-      window.removeEventListener('mousedown', closeMenu);
-      clearTimeout(autoCloseTimerIdRef.current);
-    }
-  }, []);
-
   function openMenu() {
     clearTimeout(autoCloseTimerIdRef.current); // just in case
     // Actually open TileMenu:
@@ -63,6 +51,19 @@ const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, u
     clearTimeout(autoCloseTimerIdRef.current);
   }
 
+  //TODO USEFUL à réexaminer. Pour quelle raison ai-je mis openedMenu en paramètre ?
+  // Et quand je mets :
+  //useEffect((openedMenu, closeMenu) => {
+  // Il y a un warning qui disparaît.
+  // Par ailleurs, il y a peut-être des conclusions à tirer de ce que j'ai appris sur trackmouse (voir help.js)
+  useEffect((openedMenu) => {
+    return () => {
+      window.removeEventListener('mousedown', closeMenu);
+      clearTimeout(autoCloseTimerIdRef.current);
+    }
+  }, []);
+
+
 
   return(
     <>
@@ -72,7 +73,7 @@ const Tile = forwardRef(({ tile, deleteTile, setTruthValue, startDraggingTile, u
 
         tile = {tile}
         deleteTile = {deleteTile}
-        setTruthValue = {setTruthValue}
+        updateTruthValue = {updateTruthValue}
         closeMenu = {closeMenu}
 
         className = {"TileMenu"}

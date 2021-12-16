@@ -1,7 +1,8 @@
 Étapes principales
 ––––––––––––––––––
 
-Là où j'en suis : La réorganisation du code va devenir nécessaire, en particulier le système de coordonnées et ce qui concerne les flèches
+Arrow:
+flèche qui se colle au bon endroit + réorganisation du code
 
 Boutons :
 arrow + Gérer le cas où les Tiles ne sont pas encore montées
@@ -25,6 +26,10 @@ Regarder comment mettre à jour React
 
 Logo
 
+Mettre une plus jolie icône de suppression : https://iconscout.com/icon/delete-736
+
+CSS cursor: grab et grabbing pour les tuiles
+
 ECHAP pour quitter le mode texte
 
 Nouvelle tuile centrée et pas coin haut-gauche
@@ -34,6 +39,10 @@ Triangle en bas de TileMenu
 Ajuster la position de TileMenu en fonction de la place sur l'écran
 
 Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
+
+Optimiser les performances avec useMemo et useCallback
+
+Ajouter des switch() quand c'est possible
 
 
 

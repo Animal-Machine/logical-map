@@ -3,7 +3,7 @@ import Tile from './Tile'
 import Arrow from './Arrow'
 import { drawDoubleArrow } from './drawArrow.js'
 
-function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode }) {
+function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, addArrow }) {
  
   // Board State
 
@@ -24,6 +24,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
   // of the dragged element (used in both tile and board dragging):
   let mouseRelToEltX;
   let mouseRelToEltY;
+    // TODO is that a good practice?
 
   // Board dragging
 
@@ -43,9 +44,9 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
   };
 
   const dragBoard = e => {
-    setBoard({ ...board,
+    setBoard(b => ({ ...b,
                x:e.clientX-mouseRelToEltX,
-               y:e.clientY-mouseRelToEltY })
+               y:e.clientY-mouseRelToEltY }))
   };
 
   const stopDraggingBoard = () => {
@@ -71,7 +72,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
 
   function dragTile(e) {
     /* Intéressant : ci-dessous, au début, je n'avais pas mis "tiles =>", et donc la "closure" de la fonction incluait un état qui n'était plus à jour, ne tenant pas compte des modifications effectuées par la fonction foreground. On voyait donc la tuile qui passait au premier plan mais le quittait si je la déplaçais. */
-    setTiles(tiles => tiles.map(tile =>
+    setTiles(t => t.map(tile =>
       tile.id===movingTileId ? { ...tile,
                                  x: e.clientX-mouseRelToEltX,
                                  y: e.clientY-mouseRelToEltY } 
@@ -114,8 +115,8 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
         }
       });
 
-      setTiles(tiles.map(tile =>
-        tile.id===id ? {...tile, z:tiles.length}
+      setTiles(t => t.map(tile =>
+        tile.id===id ? {...tile, z:t.length}
                      : tile.z<initialZ ? tile
                                        : {...tile, z:tile.z-1}
       ));
@@ -167,20 +168,20 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
   function deleteTile(id) {
     fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',});
 
-    setTiles(tiles.filter(tile => tile.id !== id));
+    setTiles(t => t.filter(tile => tile.id !== id));
   }
 
 
   // Change a tile's truth value
 
-  function setTruthValue(id, value) {
+  function updateTruthValue(id, value) {
     fetch(`http://localhost:5000/tiles/${id}`, {
       method: 'PATCH',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify({truthValue: value}),
     });
 
-    setTiles(tiles.map(tile =>
+    setTiles(t => t.map(tile =>
       tile.id===id ? {...tile, truthValue: value} : tile
     ));
   }
@@ -189,7 +190,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
   // Update text input by user
 
   function updateText(id, text) {
-    setTiles(tiles.map(tile =>
+    setTiles(t => t.map(tile =>
       tile.id===id ? {...tile, text:text} : tile
     ));
 
@@ -202,21 +203,22 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
   }
 
   
-  // Arrows drawing
+  // Arrows
 
   const tileRefs = useRef({}).current
   const saveTileRef = key => r => { tileRefs[key] = r }
     // references to the DOM elements related to the Tile components
 
+  /// Arrow drawing in arrow mode
+
   const [arrowTip, setArrowTip] = useState([0, 0]);
     // state used in arrow mode, represents the coordinates of the arrow tip
 
-  // Function to update it, active when the user must choose a second tile:
+  // Function to update the arrow tip, active when the user must choose a second tile:
   function updateArrowTip(e) {
-    const targetTileId = Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0];
-    if (targetTileId === undefined)
+    if (Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target)).length === 0)
     {
-      setArrowTip([e.clientX, e.clientY]);
+      setArrowTip([e.clientX - board.x, e.clientY - board.y]);
     }
     else
     {
@@ -227,13 +229,30 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
       setArrowTip([toX, toY]);
     }
   }
+
+  function onClick(e) {
+    if (e.target.tagName === "TEXTAREA") {
+      const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
+      if (targetTileId !== arrowMode) {
+        addArrow(arrowMode, targetTileId);
+        setArrowMode(false);
+      }
+    }
+  }
+
   useEffect(() => {
     if (typeof arrowMode !== "boolean") {
       window.addEventListener('mousemove', updateArrowTip);
+      window.addEventListener('click', onClick);
     }
-    return () => {window.removeEventListener('mousemove', updateArrowTip)};
-  }, [arrowMode]);
+    return () => {
+      window.removeEventListener('mousemove', updateArrowTip)
+      window.removeEventListener('click', onClick);
+    };
+  }, [arrowMode, board]);
+  // board is in the dependency array to get the updated value in updateArrowTip scope
 
+  /// Other arrows
 
   function drawAllArrows(ctx) {
     for (let i in arrows) {
@@ -247,7 +266,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
       let toY = tileTo.offsetTop;
       if (fromY < toY) { fromY += tileFrom.offsetHeight; } else { toY += tileTo.offsetHeight; }
 
-      // The arrow join the tiles at the center of their borders
+      // The arrow joins the tiles at the center of their borders
       let fromX = Math.round(tileFrom.offsetLeft + tileFrom.offsetWidth/2);
       let toX = Math.round(tileTo.offsetLeft + tileTo.offsetWidth/2);
 
@@ -256,11 +275,8 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
     if (typeof arrowMode !== "boolean") {
       let tileFrom = tileRefs[arrowMode-1];
       let fromY = tileFrom.offsetTop;
-      //let toX = arrowTip[0];
-      //let toY = arrowTip[1];
-      // Énorme problème ici. Les deux lignes précédentes et suivantes ne fonctionnent pas simultanément. Soit la pointe est mal placée sur les tuiles, soit c'est sur le reste du tableau. Je ne peux pas invoquer board depuis updateArrowTip car il ne s'y actualise pas (le scope est figé une fois que la fonction est appelée).
-      let toX = arrowTip[0] - board.x;
-      let toY = arrowTip[1] - board.y;
+      let toX = arrowTip[0];
+      let toY = arrowTip[1];
       let fromX = Math.round(tileFrom.offsetLeft + tileFrom.offsetWidth/2);
       if (fromY < toY) { fromY += tileFrom.offsetHeight; }
       drawDoubleArrow(ctx, fromX, fromY, toX, toY);
@@ -306,7 +322,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode })
           ref={saveTileRef(tile.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tile.id-1]} doesn't.
           tile={tile}
           deleteTile={deleteTile}
-          setTruthValue={setTruthValue}
+          updateTruthValue={updateTruthValue}
           startDraggingTile={startDraggingTile}
           updateText={updateText}
           arrowMode={arrowMode}

@@ -34,24 +34,6 @@ function AppHeader({ arrows, setArrows, switchArrowMode }) {
     });
   }
 
-  function addArrow() {
-    if (arrows.length===0) { // strangely, it doesn't work with arrows(=)==[]
-      let newArrow = {
-        from: 2,
-        to: 1,
-      };
-      fetch('http://localhost:5000/arrows', {
-        method: 'POST',
-        headers: {'Content-type': 'application/json'},
-        body: JSON.stringify(newArrow),
-      });
-      setArrows([newArrow]);
-    } else {
-      fetch('http://localhost:5000/arrows/1', {method: 'DELETE'});
-      setArrows([]);
-    }
-  }
-
   return(
     <header className="App-header">
       <button
