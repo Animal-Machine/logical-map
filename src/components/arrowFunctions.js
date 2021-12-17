@@ -1,4 +1,19 @@
-export function drawDoubleArrow(ctx, x1, y1, x3, y3) {
+export function calculateArrowEnds({ x, y, w, h }, { X, Y, W, H }) {
+// the first argument represents a tile position and dimensions,
+// the second one represents either another tile or the mouse pointer position
+// (so W and H can be undefined)
+
+  if (y < Y) { y += h; } else { if (H) {Y += H} }
+    // connects the bottom border of the tile above to the top border of the other tile
+
+  x = Math.round(x + w/2);
+  if (W) {X = Math.round(X + W/2)}
+    // the arrow joins the tiles at the center of their borders
+
+  return [x, y, X, Y];
+}
+
+export function drawDoubleArrow(ctx, [ x1, y1, x3, y3 ]) {
 // Draws a double arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
 
   let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
@@ -25,5 +40,5 @@ export function drawDoubleArrow(ctx, x1, y1, x3, y3) {
 }
 
 export function getArrowHitbox(arrow) {
-  return [arrow.x + 1920, arrow.y + 1080, 100, 100]
+  return [arrow.x + 1920, arrow.y + 1080, 100, 100]; //TODO utiliser initialBoardPosition (et pareil dans Tile.js)
 }

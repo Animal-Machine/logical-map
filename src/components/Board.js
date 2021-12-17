@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Tile from './Tile'
 import Arrow from './Arrow'
-import { drawDoubleArrow } from './drawArrow.js'
+import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions.js'
 
 function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, addArrow }) {
  
@@ -211,36 +211,41 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
 
   /// Arrow drawing in arrow mode
 
-  const [arrowTip, setArrowTip] = useState([0, 0]);
+  const [arrowTip, setArrowTip] = useState({}); // TODO find a better initial value?
     // state used in arrow mode, represents the coordinates of the arrow tip
 
-  // Function to update the arrow tip, active when the user must choose a second tile:
-  function updateArrowTip(e) {
-    if (Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target)).length === 0)
-    {
-      setArrowTip([e.clientX - board.x, e.clientY - board.y]);
-    }
-    else
-    {
-      let toX = Math.round(e.target.offsetLeft + e.target.offsetWidth/2);
-      let toY = e.target.offsetTop;
-      //if (fromY < toY) { fromY += tileFrom.offsetHeight; } else { toY += tileTo.offsetHeight; }
-      // impossible d'implémenter cette partie pour le moment… TODO refactoriser
-      setArrowTip([toX, toY]);
-    }
-  }
+  useEffect(() => {
 
-  function onClick(e) {
-    if (e.target.tagName === "TEXTAREA") {
-      const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
-      if (targetTileId !== arrowMode) {
-        addArrow(arrowMode, targetTileId);
-        setArrowMode(false);
+    // Function to update the arrow tip, active when the user must choose a second tile:
+    function updateArrowTip(e) {
+      if (Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target)).length === 0)
+      {
+        setArrowTip({
+          X: e.clientX - board.x,
+          Y: e.clientY - board.y,
+        });
+      }
+      else
+      {
+        setArrowTip({
+          X: e.target.offsetLeft,
+          Y: e.target.offsetTop,
+          W: e.target.offsetWidth,
+          H: e.target.offsetHeight,
+        });
       }
     }
-  }
 
-  useEffect(() => {
+    function onClick(e) {
+      if (e.target.tagName === "TEXTAREA") {
+        const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
+        if (targetTileId !== arrowMode) {
+          addArrow(arrowMode, targetTileId);
+          setArrowMode(false);
+        }
+      }
+    }
+
     if (typeof arrowMode !== "boolean") {
       window.addEventListener('mousemove', updateArrowTip);
       window.addEventListener('click', onClick);
@@ -254,36 +259,45 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
 
   /// Other arrows
 
-  function drawAllArrows(ctx) {
-    for (let i in arrows) {
-
-      // References to the DOM objects representing the tiles
-      let tileFrom = tileRefs[arrows[i].from-1];
-      let tileTo = tileRefs[arrows[i].to-1];
-
-      // Connects the bottom border of the tile above to the top border of the other tile
-      let fromY = tileFrom.offsetTop;
-      let toY = tileTo.offsetTop;
-      if (fromY < toY) { fromY += tileFrom.offsetHeight; } else { toY += tileTo.offsetHeight; }
-
-      // The arrow joins the tiles at the center of their borders
-      let fromX = Math.round(tileFrom.offsetLeft + tileFrom.offsetWidth/2);
-      let toX = Math.round(tileTo.offsetLeft + tileTo.offsetWidth/2);
-
-      drawDoubleArrow(ctx, fromX, fromY, toX, toY);
-    }
-    if (typeof arrowMode !== "boolean") {
-      let tileFrom = tileRefs[arrowMode-1];
-      let fromY = tileFrom.offsetTop;
-      let toX = arrowTip[0];
-      let toY = arrowTip[1];
-      let fromX = Math.round(tileFrom.offsetLeft + tileFrom.offsetWidth/2);
-      if (fromY < toY) { fromY += tileFrom.offsetHeight; }
-      drawDoubleArrow(ctx, fromX, fromY, toX, toY);
-    }
-  }
-
   useEffect(() => {
+
+    function drawAllArrows(ctx) {
+      for (let i in arrows) {
+
+        // References to the DOM objects representing the tiles
+        let tileFrom = tileRefs[arrows[i].from-1];
+        let tileTo = tileRefs[arrows[i].to-1];
+
+        drawDoubleArrow(ctx, calculateArrowEnds(
+          {
+            x: tileFrom.offsetLeft,
+            y: tileFrom.offsetTop,
+            w: tileFrom.offsetWidth,
+            h: tileFrom.offsetHeight,
+          },
+          {
+            X: tileTo.offsetLeft,
+            Y: tileTo.offsetTop,
+            W: tileTo.offsetWidth,
+            H: tileTo.offsetHeight,
+          }
+        ));
+
+      }
+      if (typeof arrowMode !== "boolean") {
+        let tileFrom = tileRefs[arrowMode-1];
+        drawDoubleArrow(ctx, calculateArrowEnds(
+          {
+            x: tileFrom.offsetLeft,
+            y: tileFrom.offsetTop,
+            w: tileFrom.offsetWidth,
+            h: tileFrom.offsetHeight,
+          },
+          arrowTip
+        ));
+      }
+    }
+
     let canvas = document.querySelector('canvas');
     if (canvas.getContext) {
       let ctx = canvas.getContext('2d');

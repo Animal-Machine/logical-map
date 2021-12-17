@@ -2,7 +2,7 @@
 ––––––––––––––––––
 
 Arrow:
-flèche qui se colle au bon endroit + réorganisation du code
+permettre la suppression
 
 Boutons :
 arrow + Gérer le cas où les Tiles ne sont pas encore montées

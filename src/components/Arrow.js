@@ -1,15 +1,15 @@
-import { getArrowHitbox } from './drawArrow.js'
+import { getArrowHitbox } from './arrowFunctions.js'
 
 export default function Arrow({ arrow }) {
   return(
     <div
+      onClick = {() => console.log(getArrowHitbox(arrow))}
       style = {{
-        left: arrow.x+1920, //TODO utiliser initialBoardPosition (et pareil dans Tile.js)
-        top: arrow.y+1080,
-        //zIndex: tile.z,
+        left: getArrowHitbox(arrow)[0],
+        top: getArrowHitbox(arrow)[1],
       }}
     >
-      samarch
+      Flèche
     </div>
   )
 }
