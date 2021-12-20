@@ -17,6 +17,8 @@ Examiner attentivement ceci et modifier mon code : console.log(getEventListeners
 
 Convertir en TypeScript
 
+Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
+
 Regarder comment mettre à jour React
 
 

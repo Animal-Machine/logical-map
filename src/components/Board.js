@@ -3,7 +3,7 @@ import Tile from './Tile'
 import Arrow from './Arrow'
 import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions.js'
 
-function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, addArrow }) {
+function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow }) {
  
   // Board State
 
@@ -20,11 +20,10 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
 
   // Dragging
 
-  // Coordinates of the mouse relative to the top-left corner
+  // Coordsinates of the mouse relative to the top-left corner
   // of the dragged element (used in both tile and board dragging):
   let mouseRelToEltX;
   let mouseRelToEltY;
-    // TODO is that a good practice?
 
   // Board dragging
 
@@ -34,7 +33,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
     if ((e.button===0 && e.target.tagName==='CANVAS') || e.button===1) {
 
       let { x:boardInitialX, y:boardInitialY } = board;
-      // Coordinates of the mouse relative to the top-left corner of the board:
+      // Coordsinates of the mouse relative to the top-left corner of the board:
       mouseRelToEltX = e.clientX - boardInitialX;
       mouseRelToEltY = e.clientY - boardInitialY;
 
@@ -203,13 +202,49 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
   }
 
   
-  // Arrows
+
+  // Arrows drawing
+
 
   const tileRefs = useRef({}).current
   const saveTileRef = key => r => { tileRefs[key] = r }
     // references to the DOM elements related to the Tile components
 
-  /// Arrow drawing in arrow mode
+
+  /// Update arrows coordinates
+
+  const [arrowsCoords, setArrowsCoords] = useState([]);
+    // used for drawing and in Arrow.js for the hitbox and the delete button:
+
+  useEffect(() => {
+    setArrowsCoords(arrows.map(a => {
+
+      // References to the DOM objects representing the tiles
+      let tileFrom = tileRefs[a.from-1];
+      let tileTo = tileRefs[a.to-1];
+
+      let coords = calculateArrowEnds(
+        {
+          x: tileFrom.offsetLeft,
+          y: tileFrom.offsetTop,
+          w: tileFrom.offsetWidth,
+          h: tileFrom.offsetHeight,
+        },
+        {
+          X: tileTo.offsetLeft,
+          Y: tileTo.offsetTop,
+          W: tileTo.offsetWidth,
+          H: tileTo.offsetHeight,
+        }
+      );
+
+      return {id: a.id, coords: coords};
+
+    }));
+  }, [tiles, arrows]);
+
+
+  /// Update coordinates of the arrow being placed in arrow mode, and place the arrow
 
   const [arrowTip, setArrowTip] = useState({}); // TODO find a better initial value?
     // state used in arrow mode, represents the coordinates of the arrow tip
@@ -236,6 +271,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
       }
     }
 
+    // Function to place the arrow and exit arrow mode if the user clicks on a tile:
     function onClick(e) {
       if (e.target.tagName === "TEXTAREA") {
         const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
@@ -257,32 +293,18 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
   }, [arrowMode, board]);
   // board is in the dependency array to get the updated value in updateArrowTip scope
 
-  /// Other arrows
+
+  /// Draw all arrows
 
   useEffect(() => {
-
-    function drawAllArrows(ctx) {
-      for (let i in arrows) {
-
-        // References to the DOM objects representing the tiles
-        let tileFrom = tileRefs[arrows[i].from-1];
-        let tileTo = tileRefs[arrows[i].to-1];
-
-        drawDoubleArrow(ctx, calculateArrowEnds(
-          {
-            x: tileFrom.offsetLeft,
-            y: tileFrom.offsetTop,
-            w: tileFrom.offsetWidth,
-            h: tileFrom.offsetHeight,
-          },
-          {
-            X: tileTo.offsetLeft,
-            Y: tileTo.offsetTop,
-            W: tileTo.offsetWidth,
-            H: tileTo.offsetHeight,
-          }
-        ));
-
+    let canvas = document.querySelector('canvas');
+    if (canvas.getContext) {
+      let ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, board.w, board.h);
+      ctx.strokeStyle = 'white';
+      ctx.beginPath();
+      for (let i in arrowsCoords) {
+        if (arrowsCoords[i].coords) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
       }
       if (typeof arrowMode !== "boolean") {
         let tileFrom = tileRefs[arrowMode-1];
@@ -296,20 +318,10 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
           arrowTip
         ));
       }
-    }
-
-    let canvas = document.querySelector('canvas');
-    if (canvas.getContext) {
-      let ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, board.w, board.h);
-      ctx.strokeStyle = 'white';
-      ctx.beginPath();
-      drawAllArrows(ctx);
       ctx.stroke();
       ctx.closePath();
-    } /*else: si canvas n'est pas supporté*/
-    /* TODO: let ctx seulement au début et pas à chaque fois ? */
-  });
+    } //else: si canvas n'est pas supporté
+  }, [arrowsCoords, arrowMode, arrowTip]);
 
 
   // Render
@@ -324,10 +336,11 @@ function Board({ tiles, setTiles, fetchTiles, arrows, arrowMode, setArrowMode, a
       }}
     >
       <canvas width={board.w} height={board.h}>{/*Insérer des éléments pour remplacer les flèches*/}</canvas>
-      {arrows.map(arrow =>
+      {arrowsCoords.map(a =>
         <Arrow
-          key={arrow.id}
-          arrow={arrow}
+          key={a.id}
+          arrow={a}
+          tiles={tiles}
         />
       )}
       {tiles.map(tile =>

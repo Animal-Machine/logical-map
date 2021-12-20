@@ -96,6 +96,7 @@ function App() {
         setTiles={setTiles}
         fetchTiles={fetchTiles}
         arrows={arrows}
+        setArrows={setArrows}
         arrowMode={arrowMode}
         setArrowMode={setArrowMode}
         addArrow={addArrow}
