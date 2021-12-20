@@ -78,12 +78,15 @@ function App() {
         method: 'POST',
         headers: {'Content-type': 'application/json'},
         body: JSON.stringify(newArrow),
-      });
-      setArrows(a => [...a, newArrow]);
+      }).then(fetchArrows)
+        .then(setArrows);
     }
   }
 
-  //fetch(`http://localhost:5000/arrows/${id}`, {method: 'DELETE'});
+  function deleteArrow(id) {
+    setArrows(arrows => arrows.filter(a => a.id !== id));
+    fetch(`http://localhost:5000/arrows/${id}`, {method: 'DELETE'});
+  }
 
   
   // Render
@@ -100,6 +103,7 @@ function App() {
         arrowMode={arrowMode}
         setArrowMode={setArrowMode}
         addArrow={addArrow}
+        deleteArrow={deleteArrow}
       />
       {/*<div style={{overflow:'hidden'}}>
         <Board arrows={arrows} />

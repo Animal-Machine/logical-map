@@ -1,5 +1,3 @@
-/*$main-color: #384048;/* Voir SASS (SCSS) pour utiliser ça. */
-
 .App {
   width: 100vw;
   height: 100vh;
@@ -117,7 +115,8 @@
 .TileMenu button:hover {
   background-color: paleturquoise;
   border-color: black;
-  /* Bizarrement, cette prop se transmet aux boutons classifiés ci-dessous, mais ce comportement ne s'est pas reproduit avec :active. */
+  /* Strangely, this property affects the classified buttons below,
+   * but this behavior didn't occur with :active. */
 }
 
 .TileMenu button:active {
@@ -151,7 +150,7 @@
   background-color: #cc0000;
 }
 
-.TileMenu button.Delete {
+.TileMenu button.Delete, .DeleteArrow div {
   border-radius: 0;
   border-width: 0;
   background-color: white;
@@ -160,8 +159,12 @@
   background-repeat: no-repeat;
   background-position: center;
   opacity: 0.6;
+  transition-duration: 0.7s;
 }
 
-.TileMenu button.Delete:hover {
+.TileMenu button.Delete:hover, .DeleteArrow:hover div {
+/* I want the trash icon to become opaque when the mouse is over
+ * the largest button that contains it,
+ * hence the div inside the DeleteArrow-class button. */
   opacity: 1;
 }

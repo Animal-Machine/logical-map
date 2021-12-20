@@ -3,7 +3,7 @@ import Tile from './Tile'
 import Arrow from './Arrow'
 import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions.js'
 
-function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow }) {
+function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }) {
  
   // Board State
 
@@ -165,9 +165,27 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
   // Delete a tile
   
   function deleteTile(id) {
-    fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',});
+    // deletes arrows tied to the tile first, then the tile itself.
 
-    setTiles(t => t.filter(tile => tile.id !== id));
+    (async function() {
+      let arrowList = [];
+      // Tried this:
+      //await Promise.all(arrows.map(a => async () => {
+      // which didn't work. Why?
+      // TODO UNDERSTAND
+      // And I didn't understand either the solution I found on the web:
+      await Promise.all(arrows.map(async (a) => {
+        if (a.from === id || a.to === id) {
+          await fetch(`http://localhost:5000/arrows/${a.id}`, {method: 'DELETE',});
+          arrowList.push(a.id);
+        }
+      }));
+      return(arrowList);
+    })()
+
+      .then(resp => setArrows(arrows => arrows.filter(a => !resp.includes(a.id))))
+      .then(() => fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',}))
+      .then(() => setTiles(t => t.filter(tile => tile.id !== id)));
   }
 
 
@@ -223,24 +241,31 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
       let tileFrom = tileRefs[a.from-1];
       let tileTo = tileRefs[a.to-1];
 
-      let coords = calculateArrowEnds(
-        {
-          x: tileFrom.offsetLeft,
-          y: tileFrom.offsetTop,
-          w: tileFrom.offsetWidth,
-          h: tileFrom.offsetHeight,
-        },
-        {
-          X: tileTo.offsetLeft,
-          Y: tileTo.offsetTop,
-          W: tileTo.offsetWidth,
-          H: tileTo.offsetHeight,
-        }
-      );
+      try {
+        let coords = calculateArrowEnds(
+          {
+            x: tileFrom.offsetLeft,
+            y: tileFrom.offsetTop,
+            w: tileFrom.offsetWidth,
+            h: tileFrom.offsetHeight,
+          },
+          {
+            X: tileTo.offsetLeft,
+            Y: tileTo.offsetTop,
+            W: tileTo.offsetWidth,
+            H: tileTo.offsetHeight,
+          }
+        );
 
-      return {id: a.id, coords: coords};
+        return {id: a.id, coords: coords, highlight: false};
+      }
+      catch(err) {console.log(err)}
 
-    }));
+    // The function will return undefined if the given arrow misses
+    // one of its tiles (which can happen when a syncing problem occurs),
+    // hence the filter just below which will prevent drawing attempt.
+
+    }).filter(a => a));
   }, [tiles, arrows]);
 
 
@@ -304,7 +329,10 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
       ctx.strokeStyle = 'white';
       ctx.beginPath();
       for (let i in arrowsCoords) {
-        if (arrowsCoords[i].coords) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
+        if (arrowsCoords[i].coords) {
+          drawDoubleArrow(ctx, arrowsCoords[i].coords)
+          if (arrowsCoords[i].highlight) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
+        }
       }
       if (typeof arrowMode !== "boolean") {
         let tileFrom = tileRefs[arrowMode-1];
@@ -323,6 +351,10 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
     } //else: si canvas n'est pas supporté
   }, [arrowsCoords, arrowMode, arrowTip]);
 
+  function switchHighlight(id, value) {
+    setArrowsCoords(arrowsCoords => arrowsCoords.map(c => (c.id === id) ? {...c, highlight: value} : c ));
+  }
+
 
   // Render
 
@@ -340,7 +372,8 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
         <Arrow
           key={a.id}
           arrow={a}
-          tiles={tiles}
+          switchHighlight={switchHighlight}
+          deleteArrow={deleteArrow}
         />
       )}
       {tiles.map(tile =>

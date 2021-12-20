@@ -1,17 +1,17 @@
 Étapes principales
 ––––––––––––––––––
 
-Arrow:
-permettre la suppression
+Remplacer tous les for-in par des for-of
+
+Contrôle et suppression des « flèches fantômes » (qui n'apparaissent désormais plus à l'écran)
 
 Boutons :
-arrow + Gérer le cas où les Tiles ne sont pas encore montées
 demo
 reset z-order
 
 Modifier le système de coordonnées et supprimer "board" en tant que rectangle qui bouge.
 
-Examiner à nouveau mon useEffect() avec openedMenu dans Tile.js
+Examiner à nouveau mon useEffect() avec openedMenu dans Tile.js (erreur dans la console).
 
 Examiner attentivement ceci et modifier mon code : console.log(getEventListeners(window));
 
@@ -20,6 +20,8 @@ Convertir en TypeScript
 Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
 
 Regarder comment mettre à jour React
+
+Système de sauvegarde et de "Undo"
 
 
 
@@ -31,6 +33,9 @@ Logo
 Mettre une plus jolie icône de suppression : https://iconscout.com/icon/delete-736
 
 CSS cursor: grab et grabbing pour les tuiles
+
+Utiliser SASS pour pouvoir faire des choses comme ça : 
+$main-color: #384048;/* Voir SASS (SCSS) pour utiliser ça.
 
 ECHAP pour quitter le mode texte
 

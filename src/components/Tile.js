@@ -34,7 +34,7 @@ const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile
     // Prepare TileMenu closing:
     window.addEventListener('mousedown', closeMenu);
       // first case: click somewhere else
-    autoCloseTimerIdRef.current = setTimeout(closeMenu, 3000);
+    autoCloseTimerIdRef.current = setTimeout(closeMenu, 5000);
       // second case: time out
   }
 
