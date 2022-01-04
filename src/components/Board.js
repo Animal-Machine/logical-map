@@ -3,7 +3,8 @@ import Tile from './Tile'
 import Arrow from './Arrow'
 import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions.js'
 
-function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }) {
+function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setTilesCoords, setTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }) {
+
  
   // Board State
 
@@ -61,7 +62,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
     foreground(id);
     movingTileId = id;
 
-    let [{x:tileInitialX, y:tileInitialY}] = tiles.filter(tile=>tile.id===id);
+    let [{x:tileInitialX, y:tileInitialY}] = tilesCoords.filter(tile=>tile.id===id);
     mouseRelToEltX = mouseX - tileInitialX;
     mouseRelToEltY = mouseY - tileInitialY;
 
@@ -70,8 +71,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
   };
 
   function dragTile(e) {
-    /* Intéressant : ci-dessous, au début, je n'avais pas mis "tiles =>", et donc la "closure" de la fonction incluait un état qui n'était plus à jour, ne tenant pas compte des modifications effectuées par la fonction foreground. On voyait donc la tuile qui passait au premier plan mais le quittait si je la déplaçais. */
-    setTiles(t => t.map(tile =>
+    setTilesCoords(t => t.map(tile =>
       tile.id===movingTileId ? { ...tile,
                                  x: e.clientX-mouseRelToEltX,
                                  y: e.clientY-mouseRelToEltY } 
@@ -95,15 +95,15 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
     // TODO: optimization (fetch and update state in the same conditional statements? Only fetch sometimes?)
 
   function foreground(id) {
-    let [{z:initialZ}] = tiles.filter(tile=>tile.id===id)
+    let [{z:initialZ}] = tilesCoords.filter(tile=>tile.id===id)
 
-    if (initialZ !== tiles.length) {
-      tiles.forEach(tile => {
+    if (initialZ !== tilesCoords.length) {
+      tilesCoords.forEach(tile => {
         if (tile.id === id) {
           fetch(`http://localhost:5000/tiles/${id}`, {
             method: 'PATCH',
             headers: {'Content-type': 'application/json'},
-            body: JSON.stringify({z: tiles.length}),
+            body: JSON.stringify({z: tilesCoords.length}),
           });
         } else if (tile.z > initialZ){
           fetch(`http://localhost:5000/tiles/${tile.id}`, {
@@ -114,7 +114,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
         }
       });
 
-      setTiles(t => t.map(tile =>
+      setTilesCoords(t => t.map(tile =>
         tile.id===id ? {...tile, z:t.length}
                      : tile.z<initialZ ? tile
                                        : {...tile, z:tile.z-1}
@@ -126,39 +126,34 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
   // TODO: less often for performance
 
   useEffect(() => {
-    for (let i in tiles) {
+    for (let i in tilesCoords) {
       for (let j = 0; j < i; j++) {
         try {
-          if (tiles[i].z === tiles[j].z) {
-            throw new Error(`These two tiles have the same z :\n${tiles[j].id} "${tiles[j].text}" and ${tiles[i].id} "${tiles[i].text}"`);
+          if (tilesCoords[i].z === tilesCoords[j].z) {
+            throw new Error(`These two tiles have the same z :\n${tilesCoords[j].id} "${tilesContent[j].text}" and ${tilesCoords[i].id} "${tilesContent[i].text}"`);
           }
         } catch(e) {
           console.error(e)
         }
       }
     }
-  }, [tiles]);
+  }, [tilesCoords]);
 
 
   // Add a new tile
 
   function addTile(mouseX, mouseY) {
-    const tile = {
+    myPost("tiles", {
       text: '',
       truthValue: null,
       x: mouseX - board.x + initialBoardPosition[0],
-      y: mouseY - board.y + initialBoardPosition[1], // TODO créer un fichier séparé
-      z: tiles.length + 1,
-    }
-    
-    fetch('http://localhost:5000/tiles', {
-      method: 'POST',
-      headers: {'Content-type': 'application/json'},
-      body: JSON.stringify(tile),
-    })
-      .then(fetchTiles) // I had to write this in order to get the new id
+      y: mouseY - board.y + initialBoardPosition[1],
+      z: tilesCoords.length + 1,
+    }).then(() => myGet("tiles"))
+        // I need to get the id of the new tile to place arrow, hence this fetch GET
+        // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
       .then(setTiles)
-      .catch(e => console.error("Couldn't fetch data:", e));
+      .catch(e => console.error("While adding a new tile, ", e));
   }
 
 
@@ -185,7 +180,9 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
 
       .then(resp => setArrows(arrows => arrows.filter(a => !resp.includes(a.id))))
       .then(() => fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',}))
-      .then(() => setTiles(t => t.filter(tile => tile.id !== id)));
+      .then(() => setTilesContent(t => t.filter(tile => tile.id !== id)))
+      .then(() => setTilesCoords(t => t.filter(tile => tile.id !== id)))
+      .catch(e => console.error("While deleting arrows, ", e));
   }
 
 
@@ -198,7 +195,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
       body: JSON.stringify({truthValue: value}),
     });
 
-    setTiles(t => t.map(tile =>
+    setTilesContent(t => t.map(tile =>
       tile.id===id ? {...tile, truthValue: value} : tile
     ));
   }
@@ -207,7 +204,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
   // Update text input by user
 
   function updateText(id, text) {
-    setTiles(t => t.map(tile =>
+    setTilesContent(t => t.map(tile =>
       tile.id===id ? {...tile, text:text} : tile
     ));
 
@@ -232,7 +229,9 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
   /// Update arrows coordinates
 
   const [arrowsCoords, setArrowsCoords] = useState([]);
-    // used for drawing and in Arrow.js for the hitbox and the delete button:
+    // used for drawing and in Arrow.js for the hitbox and the delete button,
+    // contains the properties "id" (of the arrow), "coords" (of both ends)
+    // and "highlight" (when the cursor is on it)
 
   useEffect(() => {
     setArrowsCoords(arrows.map(a => {
@@ -266,7 +265,7 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
     // hence the filter just below which will prevent drawing attempt.
 
     }).filter(a => a));
-  }, [tiles, arrows]);
+  }, [tilesCoords, arrows]);
 
 
   /// Update coordinates of the arrow being placed in arrow mode, and place the arrow
@@ -302,7 +301,6 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
         const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
         if (targetTileId !== arrowMode) {
           addArrow(arrowMode, targetTileId);
-          setArrowMode(false);
         }
       }
     }
@@ -351,6 +349,9 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
     } //else: si canvas n'est pas supporté
   }, [arrowsCoords, arrowMode, arrowTip]);
 
+
+  // Highlight arrow when cursor is on it
+
   function switchHighlight(id, value) {
     setArrowsCoords(arrowsCoords => arrowsCoords.map(c => (c.id === id) ? {...c, highlight: value} : c ));
   }
@@ -376,11 +377,11 @@ function Board({ tiles, setTiles, fetchTiles, arrows, setArrows, arrowMode, setA
           deleteArrow={deleteArrow}
         />
       )}
-      {tiles.map(tile =>
+      {tilesContent.map(tileContent =>
         <Tile
-          key={tile.id}
-          ref={saveTileRef(tile.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tile.id-1]} doesn't.
-          tile={tile}
+          key={tileContent.id}
+          ref={saveTileRef(tileContent.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tileContent.id-1]} doesn't.
+          tile={{...tileContent, ...tilesCoords.filter(t => t.id===tileContent.id)[0]}}
           deleteTile={deleteTile}
           updateTruthValue={updateTruthValue}
           startDraggingTile={startDraggingTile}

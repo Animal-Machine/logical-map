@@ -24,35 +24,61 @@ function App() {
   }, [])
 
 
-  // Tiles State
+  // Custom fetch functions
 
-  const [tiles, setTiles] = useState([]);
+  const myGet = async address => {
+    const res = await fetch('http://localhost:5000/'+address);
+    return await res.json();
+  };
 
-  const fetchTiles = async () => {
-    const res = await fetch('http://localhost:5000/tiles');
-    const data = await res.json();
-    return data;
+  const myPost = async (address, data) => {
+    return await fetch('http://localhost:5000/'+address, {
+      method: 'POST',
+      headers: {'Content-type': 'application/json'},
+      body: JSON.stringify(data),
+    });
   };
 
 
-  // Arrows State
+  // Tiles and Arrows States
+
+  const [tilesContent, setTilesContent] = useState([]);
+    // contains the properties "text", "truthValue" and "id"
+
+  const [tilesCoords, setTilesCoords] = useState([]);
+    // contains "x", "y" and "z" (used for css z-index property)
 
   const [arrows, setArrows] = useState([]);
+    // contains the properties "from", "to" (ids of the linked tiles) and "id"
 
-  const fetchArrows = async () => {
-    const res = await fetch('http://localhost:5000/arrows');
-    const data = await res.json();
-    return data;
-  }; //TODO généraliser avec fetchtiles?
-  //TODO modifier ce fetch pour un fetch GET?
+
+  function separateTileData(T) {
+    // In the database, there is only one table called "tiles".
+    // Therefore, I need this function to convert it into the two states
+    // "tilesContent" and "tilesCoords"
+    let TContent = [];
+    let TCoords = [];
+    T.forEach(t => {
+      TContent.push({id:t.id, text:t.text, truthValue:t.truthValue});
+      TCoords.push({id:t.id, x:t.x, y:t.y, z:t.z});
+    });
+    return {content:TContent, coords:TCoords};
+  }
+
+  function setTiles(tiles) {
+    // sets tilesContent and tilesCoords with tiles data from the server
+    let { content, coords } = separateTileData(tiles);
+    setTilesContent(content);
+    setTilesCoords(coords);
+  }
 
 
   // Fetch tiles and arrows on page load
 
   useEffect(() => {
-    fetchTiles().then(setTiles).catch(e => console.error("Couldn't fetch data:", e));
-    fetchArrows().then(setArrows).catch(e => console.error("Couldn't fetch data:", e));
-  }, []); // I hesitated to add "tiles" but it created lag when dragging tiles
+    myGet("tiles") .then(setTiles) .catch(e => console.error("Couldn't fetch data. ", e));
+    myGet("arrows").then(setArrows).catch(e => console.error("Couldn't fetch data. ", e));
+  }, []);
 
 
   // Arrow Mode
@@ -74,12 +100,11 @@ function App() {
         from: a,
         to: b,
       };
-      fetch('http://localhost:5000/arrows', {
-        method: 'POST',
-        headers: {'Content-type': 'application/json'},
-        body: JSON.stringify(newArrow),
-      }).then(fetchArrows)
-        .then(setArrows);
+      myPost("arrows", newArrow)
+        .then(() => myGet("arrows"))
+        .then(setArrows)
+        .then(() => setArrowMode(false))
+        .catch(e => console.error("While adding new arrow, ", e));
     }
   }
 
@@ -93,11 +118,20 @@ function App() {
 
   return (
     <div className="App">
-      <AppHeader arrows={arrows} setArrows={setArrows} switchArrowMode={switchArrowMode} />
+      <AppHeader
+        myPost={myPost}
+        arrows={arrows}
+        setArrows={setArrows}
+        switchArrowMode={switchArrowMode}
+      />
       <Board
-        tiles={tiles}
+        myGet={myGet}
+        myPost={myPost}
+        tilesContent={tilesContent}
+        setTilesContent={setTilesContent}
+        tilesCoords={tilesCoords}
+        setTilesCoords={setTilesCoords}
         setTiles={setTiles}
-        fetchTiles={fetchTiles}
         arrows={arrows}
         setArrows={setArrows}
         arrowMode={arrowMode}

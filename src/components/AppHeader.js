@@ -1,5 +1,5 @@
 
-function AppHeader({ arrows, setArrows, switchArrowMode }) {
+function AppHeader({ myPost, arrows, setArrows, switchArrowMode }) {
 
   function demo() {
     const demoTiles = [
@@ -25,13 +25,7 @@ function AppHeader({ arrows, setArrows, switchArrowMode }) {
         z: 3,
       }
     ];
-    demoTiles.forEach(tile => {
-      fetch('http://localhost:5000/tiles', {
-        method: 'POST',
-        headers: {'Content-type': 'application/json'},
-        body: JSON.stringify(tile),
-      });
-    });
+    demoTiles.forEach(tile => myPost("tiles", tile));
   }
 
   return(

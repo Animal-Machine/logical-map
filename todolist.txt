@@ -39,6 +39,10 @@ $main-color: #384048;/* Voir SASS (SCSS) pour utiliser ça.
 
 ECHAP pour quitter le mode texte
 
+Clic droit pour quitter le mode flèche
+
+Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier. Ou bien, lui permettre de cliquer mais ça ne change rien.
+
 Nouvelle tuile centrée et pas coin haut-gauche
 
 Triangle en bas de TileMenu
@@ -50,6 +54,8 @@ Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
 Optimiser les performances avec useMemo et useCallback
 
 Ajouter des switch() quand c'est possible
+
+Bouton démo : afficher les tuiles immédiatement. Corriger le lag
 
 
 
