@@ -1,4 +1,4 @@
-export default function TileMenu({ tile, deleteTile, updateTruthValue, onMouseOver, onMouseLeave, closeMenu, className, style }) {
+export default function TileMenuComponent({ tile, deleteTile, updateTruthValue, onMouseOver, onMouseLeave, closeMenu, className, style }: any) {
 
   //useEffect(() => document.querySelectorAll("button").forEach(button => button.addEventListener("click", () => closeMenu(undefined))), []) // didn't work because it was unmounting the component before executing the "onClick" handlers, so I moved closeMenu inside them
 

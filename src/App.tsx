@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import './App.css';
-import Board from './components/Board'
-import AppHeader from './components/AppHeader'
+import BoardComponent from './components/Board';
+import AppHeaderComponent from './components/AppHeader';
+import { Address, TileData, TileContent, TileCoords, Arrow } from './types';
 
 function App() {
 
-  const preventDef = e => e.preventDefault();
-  const keydown = e => {
+  const preventDef = (e: MouseEvent) => e.preventDefault();
+  const keydown = (e:KeyboardEvent) => {
     if (e.code === "Escape") {
       setArrowMode(false);
     }
@@ -26,12 +27,12 @@ function App() {
 
   // Custom fetch functions
 
-  const myGet = async address => {
+  const myGet = async (address: Address) => {
     const res = await fetch('http://localhost:5000/'+address);
     return await res.json();
   };
 
-  const myPost = async (address, data) => {
+  const myPost = async (address: Address, data: object) => {
     return await fetch('http://localhost:5000/'+address, {
       method: 'POST',
       headers: {'Content-type': 'application/json'},
@@ -42,22 +43,21 @@ function App() {
 
   // Tiles and Arrows States
 
-  const [tilesContent, setTilesContent] = useState([]);
+  const [tilesContent, setTilesContent] = useState<TileContent[]>([]);
     // contains the properties "text", "truthValue" and "id"
 
-  const [tilesCoords, setTilesCoords] = useState([]);
+  const [tilesCoords, setTilesCoords] = useState<TileCoords[]>([]);
     // contains "x", "y" and "z" (used for css z-index property)
 
-  const [arrows, setArrows] = useState([]);
+  const [arrows, setArrows] = useState<Arrow[]>([]);
     // contains the properties "from", "to" (ids of the linked tiles) and "id"
-
-
-  function separateTileData(T) {
+  
+  function separateTileData(T: TileData[]) {
     // In the database, there is only one table called "tiles".
     // Therefore, I need this function to convert it into the two states
     // "tilesContent" and "tilesCoords"
-    let TContent = [];
-    let TCoords = [];
+    let TContent: TileContent[] = [];
+    let TCoords: TileCoords[] = [];
     T.forEach(t => {
       TContent.push({id:t.id, text:t.text, truthValue:t.truthValue});
       TCoords.push({id:t.id, x:t.x, y:t.y, z:t.z});
@@ -65,7 +65,7 @@ function App() {
     return {content:TContent, coords:TCoords};
   }
 
-  function setTiles(tiles) {
+  function setTiles(tiles: TileData[]) {
     // sets tilesContent and tilesCoords with tiles data from the server
     let { content, coords } = separateTileData(tiles);
     setTilesContent(content);
@@ -94,7 +94,7 @@ function App() {
     setArrowMode(m => !m);
   }
 
-  function addArrow(a, b) {
+  function addArrow(a: number, b: number) {
     if (arrows.filter(arrow => (arrow.from===a && arrow.to===b)).length === 0) {
       let newArrow = {
         from: a,
@@ -108,7 +108,7 @@ function App() {
     }
   }
 
-  function deleteArrow(id) {
+  function deleteArrow(id: number) {
     setArrows(arrows => arrows.filter(a => a.id !== id));
     fetch(`http://localhost:5000/arrows/${id}`, {method: 'DELETE'});
   }
@@ -118,13 +118,13 @@ function App() {
 
   return (
     <div className="App">
-      <AppHeader
+      <AppHeaderComponent
         myPost={myPost}
         arrows={arrows}
         setArrows={setArrows}
         switchArrowMode={switchArrowMode}
       />
-      <Board
+      <BoardComponent
         myGet={myGet}
         myPost={myPost}
         tilesContent={tilesContent}
@@ -139,9 +139,6 @@ function App() {
         addArrow={addArrow}
         deleteArrow={deleteArrow}
       />
-      {/*<div style={{overflow:'hidden'}}>
-        <Board arrows={arrows} />
-      </div>*/}
     </div>
   );
 }

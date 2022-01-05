@@ -1,5 +1,4 @@
-
-function AppHeader({ myPost, arrows, setArrows, switchArrowMode }) {
+export default function AppHeaderComponent({ myPost, arrows, setArrows, switchArrowMode }: any) {
 
   function demo() {
     const demoTiles = [
@@ -43,5 +42,3 @@ function AppHeader({ myPost, arrows, setArrows, switchArrowMode }) {
     </header>
   );
 }
-
-export default AppHeader;

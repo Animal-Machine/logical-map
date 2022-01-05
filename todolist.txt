@@ -4,6 +4,7 @@
 Remplacer tous les for-in par des for-of
 
 Contrôle et suppression des « flèches fantômes » (qui n'apparaissent désormais plus à l'écran)
+… ou pas. Devrais-je supposer un dysfonctionnement ?
 
 Boutons :
 demo
@@ -11,11 +12,12 @@ reset z-order
 
 Modifier le système de coordonnées et supprimer "board" en tant que rectangle qui bouge.
 
-Examiner à nouveau mon useEffect() avec openedMenu dans Tile.js (erreur dans la console).
+Remplacer le plus possible de ": any" dans Tile.tsx et Board.tsx
 
-Examiner attentivement ceci et modifier mon code : console.log(getEventListeners(window));
+Examiner à nouveau mon useEffect() avec openedMenu dans Tile.tsx
 
-Convertir en TypeScript
+Examiner attentivement le résultat de cette commande : console.log(getEventListeners(window));
+et modifier mon code
 
 Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
 

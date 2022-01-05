@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
-import Tile from './Tile'
-import Arrow from './Arrow'
-import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions.js'
+import { useState, useEffect, useRef } from 'react';
+import TileComponent from './Tile';
+import ArrowComponent from './Arrow';
+import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions';
+import { TileData, TileContent, TileCoords, Arrow, ArrowCoords, Point, Rectangle } from '../types';
 
-function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setTilesCoords, setTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }) {
+function BoardComponent({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setTilesCoords, setTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
 
  
   // Board State
@@ -23,12 +24,12 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
 
   // Coordsinates of the mouse relative to the top-left corner
   // of the dragged element (used in both tile and board dragging):
-  let mouseRelToEltX;
-  let mouseRelToEltY;
+  let mouseRelToEltX: number;
+  let mouseRelToEltY: number;
 
   // Board dragging
 
-  const startDraggingBoard = e => {
+  const startDraggingBoard = (e: any) => {
     // Drag board only with left mouse button if it's the target,
     // or drag board through tile with middle button:
     if ((e.button===0 && e.target.tagName==='CANVAS') || e.button===1) {
@@ -43,7 +44,7 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
     }
   };
 
-  const dragBoard = e => {
+  const dragBoard = (e: MouseEvent) => {
     setBoard(b => ({ ...b,
                x:e.clientX-mouseRelToEltX,
                y:e.clientY-mouseRelToEltY }))
@@ -56,13 +57,13 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
 
   // Tile dragging (almost identical to board dragging)
 
-  let movingTileId = null;
+  let movingTileId: number | null = null;
 
-  function startDraggingTile(id, mouseX, mouseY) {
+  function startDraggingTile(id: number, mouseX: number, mouseY: number) {
     foreground(id);
     movingTileId = id;
 
-    let [{x:tileInitialX, y:tileInitialY}] = tilesCoords.filter(tile=>tile.id===id);
+    let [{x:tileInitialX, y:tileInitialY}]: [{x: number, y:number}] = tilesCoords.filter((tile:TileData)=>tile.id===id);
     mouseRelToEltX = mouseX - tileInitialX;
     mouseRelToEltY = mouseY - tileInitialY;
 
@@ -70,8 +71,8 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
     window.addEventListener('mouseup', stopDraggingTile);
   };
 
-  function dragTile(e) {
-    setTilesCoords(t => t.map(tile =>
+  function dragTile(e: MouseEvent) {
+    setTilesCoords((t: TileCoords[]) => t.map((tile: TileCoords) =>
       tile.id===movingTileId ? { ...tile,
                                  x: e.clientX-mouseRelToEltX,
                                  y: e.clientY-mouseRelToEltY } 
@@ -79,7 +80,7 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
     ));
   };
 
-  function stopDraggingTile(e) {
+  function stopDraggingTile(e: MouseEvent) {
     fetch(`http://localhost:5000/tiles/${movingTileId}`, {
       method: 'PATCH',
       headers: {'Content-type': 'application/json'},
@@ -94,11 +95,11 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
   // Bring tile to the foreground (called by startDraggingTile)
     // TODO: optimization (fetch and update state in the same conditional statements? Only fetch sometimes?)
 
-  function foreground(id) {
-    let [{z:initialZ}] = tilesCoords.filter(tile=>tile.id===id)
+  function foreground(id: number) {
+    let [{z:initialZ}]: [{z:number}] = tilesCoords.filter((tile: TileCoords) => tile.id===id)
 
     if (initialZ !== tilesCoords.length) {
-      tilesCoords.forEach(tile => {
+      tilesCoords.forEach((tile: TileCoords) => {
         if (tile.id === id) {
           fetch(`http://localhost:5000/tiles/${id}`, {
             method: 'PATCH',
@@ -114,7 +115,7 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
         }
       });
 
-      setTilesCoords(t => t.map(tile =>
+      setTilesCoords((t: TileCoords[]) => t.map((tile: TileCoords) =>
         tile.id===id ? {...tile, z:t.length}
                      : tile.z<initialZ ? tile
                                        : {...tile, z:tile.z-1}
@@ -126,7 +127,7 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
   // TODO: less often for performance
 
   useEffect(() => {
-    for (let i in tilesCoords) {
+    for (let i = 0; i < tilesCoords.length; i++) {
       for (let j = 0; j < i; j++) {
         try {
           if (tilesCoords[i].z === tilesCoords[j].z) {
@@ -142,7 +143,7 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
 
   // Add a new tile
 
-  function addTile(mouseX, mouseY) {
+  function addTile(mouseX: number, mouseY:number) {
     myPost("tiles", {
       text: '',
       truthValue: null,
@@ -153,49 +154,48 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
         // I need to get the id of the new tile to place arrow, hence this fetch GET
         // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
       .then(setTiles)
-      .catch(e => console.error("While adding a new tile, ", e));
+      .catch((e: Error) => console.error("While adding a new tile, ", e));
   }
 
 
   // Delete a tile
   
-  function deleteTile(id) {
+  function deleteTile(id: number) {
     // deletes arrows tied to the tile first, then the tile itself.
 
     (async function() {
-      let arrowList = [];
+      let arrowList: number[] = [];
       // Tried this:
       //await Promise.all(arrows.map(a => async () => {
       // which didn't work. Why?
       // TODO UNDERSTAND
       // And I didn't understand either the solution I found on the web:
-      await Promise.all(arrows.map(async (a) => {
+      await Promise.all(arrows.map(async (a: Arrow) => {
         if (a.from === id || a.to === id) {
           await fetch(`http://localhost:5000/arrows/${a.id}`, {method: 'DELETE',});
           arrowList.push(a.id);
         }
       }));
-      return(arrowList);
+      return arrowList;
     })()
-
-      .then(resp => setArrows(arrows => arrows.filter(a => !resp.includes(a.id))))
+      .then(res => setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id))))
       .then(() => fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',}))
-      .then(() => setTilesContent(t => t.filter(tile => tile.id !== id)))
-      .then(() => setTilesCoords(t => t.filter(tile => tile.id !== id)))
-      .catch(e => console.error("While deleting arrows, ", e));
+      .then(() => setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id)))
+      .then(() => setTilesCoords((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id)))
+      .catch((e: Error) => console.error("While deleting arrows, ", e));
   }
 
 
   // Change a tile's truth value
 
-  function updateTruthValue(id, value) {
+  function updateTruthValue(id: number, value: boolean|null) {
     fetch(`http://localhost:5000/tiles/${id}`, {
       method: 'PATCH',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify({truthValue: value}),
     });
 
-    setTilesContent(t => t.map(tile =>
+    setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
       tile.id===id ? {...tile, truthValue: value} : tile
     ));
   }
@@ -203,8 +203,8 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
 
   // Update text input by user
 
-  function updateText(id, text) {
-    setTilesContent(t => t.map(tile =>
+  function updateText(id: number, text:string) {
+    setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
       tile.id===id ? {...tile, text:text} : tile
     ));
 
@@ -221,20 +221,21 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
   // Arrows drawing
 
 
-  const tileRefs = useRef({}).current
-  const saveTileRef = key => r => { tileRefs[key] = r }
+  const tileRefs: any = useRef({}).current;
+  const saveTileRef: any = (key: any) => (r: any) => { tileRefs[key] = r };
     // references to the DOM elements related to the Tile components
 
 
   /// Update arrows coordinates
 
-  const [arrowsCoords, setArrowsCoords] = useState([]);
+  const [arrowsCoords, setArrowsCoords] = useState<ArrowCoords[]>([]);
     // used for drawing and in Arrow.js for the hitbox and the delete button,
     // contains the properties "id" (of the arrow), "coords" (of both ends)
     // and "highlight" (when the cursor is on it)
 
   useEffect(() => {
-    setArrowsCoords(arrows.map(a => {
+    // converts arrows to arrowsCoords
+    setArrowsCoords(arrows.map((a: Arrow) => {
 
       // References to the DOM objects representing the tiles
       let tileFrom = tileRefs[a.from-1];
@@ -249,10 +250,10 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
             h: tileFrom.offsetHeight,
           },
           {
-            X: tileTo.offsetLeft,
-            Y: tileTo.offsetTop,
-            W: tileTo.offsetWidth,
-            H: tileTo.offsetHeight,
+            x: tileTo.offsetLeft,
+            y: tileTo.offsetTop,
+            w: tileTo.offsetWidth,
+            h: tileTo.offsetHeight,
           }
         );
 
@@ -264,39 +265,41 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
     // one of its tiles (which can happen when a syncing problem occurs),
     // hence the filter just below which will prevent drawing attempt.
 
-    }).filter(a => a));
+    }).filter((a: ArrowCoords) => a));
   }, [tilesCoords, arrows]);
 
 
   /// Update coordinates of the arrow being placed in arrow mode, and place the arrow
 
-  const [arrowTip, setArrowTip] = useState({}); // TODO find a better initial value?
+  const [arrowTip, setArrowTip] = useState<Point | Rectangle>({x: 0, y: 0}); // TODO find a better initial value?
     // state used in arrow mode, represents the coordinates of the arrow tip
 
   useEffect(() => {
 
     // Function to update the arrow tip, active when the user must choose a second tile:
-    function updateArrowTip(e) {
+    function updateArrowTip(e: any) {
       if (Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target)).length === 0)
+        // if no tile is targeted, arrowTip takes the mouse coordinates:
       {
         setArrowTip({
-          X: e.clientX - board.x,
-          Y: e.clientY - board.y,
+          x: e.clientX - board.x,
+          y: e.clientY - board.y,
         });
       }
       else
+        // if there is one, arrowTip takes its coordinates, width and height
       {
         setArrowTip({
-          X: e.target.offsetLeft,
-          Y: e.target.offsetTop,
-          W: e.target.offsetWidth,
-          H: e.target.offsetHeight,
+          x: e.target.offsetLeft,
+          y: e.target.offsetTop,
+          w: e.target.offsetWidth,
+          h: e.target.offsetHeight,
         });
       }
     }
 
     // Function to place the arrow and exit arrow mode if the user clicks on a tile:
-    function onClick(e) {
+    function onClick(e: any) {
       if (e.target.tagName === "TEXTAREA") {
         const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
         if (targetTileId !== arrowMode) {
@@ -321,39 +324,41 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
 
   useEffect(() => {
     let canvas = document.querySelector('canvas');
-    if (canvas.getContext) {
+    if (canvas) {
       let ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, board.w, board.h);
-      ctx.strokeStyle = 'white';
-      ctx.beginPath();
-      for (let i in arrowsCoords) {
-        if (arrowsCoords[i].coords) {
-          drawDoubleArrow(ctx, arrowsCoords[i].coords)
-          if (arrowsCoords[i].highlight) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
+      if (ctx) {
+        ctx.clearRect(0, 0, board.w, board.h);
+        ctx.strokeStyle = 'white';
+        ctx.beginPath();
+        for (let i in arrowsCoords) {
+          if (arrowsCoords[i].coords) {
+            drawDoubleArrow(ctx, arrowsCoords[i].coords)
+            if (arrowsCoords[i].highlight) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
+          }
         }
+        if (typeof arrowMode !== "boolean") {
+          let tileFrom = tileRefs[arrowMode-1];
+          drawDoubleArrow(ctx, calculateArrowEnds(
+            {
+              x: tileFrom.offsetLeft,
+              y: tileFrom.offsetTop,
+              w: tileFrom.offsetWidth,
+              h: tileFrom.offsetHeight,
+            },
+            arrowTip
+          ));
+        }
+        ctx.stroke();
+        ctx.closePath();
       }
-      if (typeof arrowMode !== "boolean") {
-        let tileFrom = tileRefs[arrowMode-1];
-        drawDoubleArrow(ctx, calculateArrowEnds(
-          {
-            x: tileFrom.offsetLeft,
-            y: tileFrom.offsetTop,
-            w: tileFrom.offsetWidth,
-            h: tileFrom.offsetHeight,
-          },
-          arrowTip
-        ));
-      }
-      ctx.stroke();
-      ctx.closePath();
     } //else: si canvas n'est pas supporté
   }, [arrowsCoords, arrowMode, arrowTip]);
 
 
   // Highlight arrow when cursor is on it
 
-  function switchHighlight(id, value) {
-    setArrowsCoords(arrowsCoords => arrowsCoords.map(c => (c.id === id) ? {...c, highlight: value} : c ));
+  function switchHighlight(id: number, value: boolean) {
+    setArrowsCoords((arrowsCoords: ArrowCoords[]) => arrowsCoords.map((a: ArrowCoords) => (a.id === id) ? {...a, highlight: value} : a ));
   }
 
 
@@ -370,18 +375,18 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
     >
       <canvas width={board.w} height={board.h}>{/*Insérer des éléments pour remplacer les flèches*/}</canvas>
       {arrowsCoords.map(a =>
-        <Arrow
+        <ArrowComponent
           key={a.id}
           arrow={a}
           switchHighlight={switchHighlight}
           deleteArrow={deleteArrow}
         />
       )}
-      {tilesContent.map(tileContent =>
-        <Tile
+      {tilesContent.map((tileContent: TileContent) =>
+        <TileComponent
           key={tileContent.id}
           ref={saveTileRef(tileContent.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tileContent.id-1]} doesn't.
-          tile={{...tileContent, ...tilesCoords.filter(t => t.id===tileContent.id)[0]}}
+          tile={{...tileContent, ...tilesCoords.filter((t: TileCoords) => t.id===tileContent.id)[0]}}
           deleteTile={deleteTile}
           updateTruthValue={updateTruthValue}
           startDraggingTile={startDraggingTile}
@@ -394,4 +399,4 @@ function Board({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setT
   );
 }
 
-export default Board
+export default BoardComponent;

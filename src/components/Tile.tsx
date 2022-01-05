@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef, forwardRef } from 'react'
-import TileMenu from './TileMenu'
+import { useState, useEffect, useRef, forwardRef } from 'react';
+import TileMenuComponent from './TileMenu';
 
-const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile, updateText, arrowMode, setArrowMode }, ref) => {
+const TileComponent = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile, updateText, arrowMode, setArrowMode }: any, ref: any) => {
 
   const [readonly, setReadonly] = useState(true);
     // state used for edition mode
 
-  function onMouseDown(e) {
+  function onMouseDown(e: any) {
     if (arrowMode) {
       // In arrow mode, place arrow:
       if (arrowMode === true) {
@@ -24,7 +24,7 @@ const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile
   const [openedMenu, setOpenedMenu] = useState(false);
     // state used to display —or not— the TileMenu component
 
-  const autoCloseTimerIdRef = useRef();
+  const autoCloseTimerIdRef = useRef<NodeJS.Timeout>(setTimeout(()=>{}, 0));
     // ref to store timeout ID and clear it
 
   function openMenu() {
@@ -38,7 +38,7 @@ const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile
       // second case: time out
   }
 
-  function closeMenu(e) {
+  function closeMenu(e: any) {
     // e will be undefined if closeMenu() is called by setTimeout or the TileMenu buttons onclick handlers
     if (e === undefined || (e.target.className !== "TileMenu" && !(e.target.tagName === "BUTTON" && ["Undecided", "True", "False", "Delete"].includes(e.target.className)))) {
       setOpenedMenu(false);
@@ -51,12 +51,14 @@ const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile
     clearTimeout(autoCloseTimerIdRef.current);
   }
 
-  //TODO USEFUL à réexaminer. Pour quelle raison ai-je mis openedMenu en paramètre ?
-  // Et quand je mets :
+  //TODO USEFUL à réexaminer. Jusqu'à l'ajout de Typescript qui m'a donné une erreur, j'avais écrit ceci :
+  //useEffect((openedMenu) => {
+  // Pour quelle raison ai-je mis openedMenu en paramètre ?
+  // Et quand je mettais :
   //useEffect((openedMenu, closeMenu) => {
-  // Il y a un warning qui disparaît.
+  // Il y avait un warning qui disparaissait. (Désormais impossible avec Typescript)
   // Par ailleurs, il y a peut-être des conclusions à tirer de ce que j'ai appris sur trackmouse (voir help.js)
-  useEffect((openedMenu) => {
+  useEffect(() => {
     return () => {
       window.removeEventListener('mousedown', closeMenu);
       clearTimeout(autoCloseTimerIdRef.current);
@@ -69,7 +71,7 @@ const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile
     <>
 
       {openedMenu &&
-      <TileMenu
+      <TileMenuComponent
 
         tile = {tile}
         deleteTile = {deleteTile}
@@ -134,4 +136,4 @@ const Tile = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile
   );
 });
 
-export default Tile
+export default TileComponent;

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { getArrowHitbox, getButtonBox } from './arrowFunctions.js'
+import { useState, useEffect } from 'react';
+import { getArrowHitbox, getButtonBox } from './arrowFunctions';
 
-export default function Arrow({ arrow, switchHighlight, deleteArrow }) {
+export default function ArrowComponent({ arrow, switchHighlight, deleteArrow }: any) {
 
-  const [hitbox, setHitbox] = useState([0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]);
+  const [hitbox, setHitbox] = useState([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
     // The arrow can be covered with three rectangles. These are their coordinates and sizes: [x, y, w, h].
 
   const [buttonBox, setButtonBox] = useState([0, 0, 0, 0])
