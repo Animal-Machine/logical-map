@@ -4,7 +4,7 @@ import ArrowComponent from './Arrow';
 import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions';
 import { TileData, TileContent, TileCoords, Arrow, ArrowCoords, Point, Rectangle } from '../types';
 
-function BoardComponent({ myGet, myPost, tilesContent, setTilesContent, tilesCoords, setTilesCoords, setTiles, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
+function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, updateTileText, tilesContent, tilesCoords, setTilesCoords, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
 
  
   // Board State
@@ -81,37 +81,28 @@ function BoardComponent({ myGet, myPost, tilesContent, setTilesContent, tilesCoo
   };
 
   function stopDraggingTile(e: MouseEvent) {
-    fetch(`http://localhost:5000/tiles/${movingTileId}`, {
-      method: 'PATCH',
-      headers: {'Content-type': 'application/json'},
-      body: JSON.stringify({x: e.clientX-mouseRelToEltX,
-                            y: e.clientY-mouseRelToEltY}), 
-    });
+    patchTile(movingTileId, {
+      x: e.clientX-mouseRelToEltX,
+      y: e.clientY-mouseRelToEltY
+    }).catch((e: Error) => console.error("While setting a tile's new coordinates:", e));
     window.removeEventListener('mousemove', dragTile);
     window.removeEventListener('mouseup', stopDraggingTile);
     movingTileId = null;
   };
 
   // Bring tile to the foreground (called by startDraggingTile)
-    // TODO: optimization (fetch and update state in the same conditional statements? Only fetch sometimes?)
+    // TODO: optimization (patchTile and update tilesCoord state in the same conditional statements? Only patch sometimes?)
 
   function foreground(id: number) {
     let [{z:initialZ}]: [{z:number}] = tilesCoords.filter((tile: TileCoords) => tile.id===id)
 
     if (initialZ !== tilesCoords.length) {
+      patchTile(id, {z: tilesCoords.length})
+        .catch((e: Error) => console.error("While moving a tile to the foreground:", e));
       tilesCoords.forEach((tile: TileCoords) => {
-        if (tile.id === id) {
-          fetch(`http://localhost:5000/tiles/${id}`, {
-            method: 'PATCH',
-            headers: {'Content-type': 'application/json'},
-            body: JSON.stringify({z: tilesCoords.length}),
-          });
-        } else if (tile.z > initialZ){
-          fetch(`http://localhost:5000/tiles/${tile.id}`, {
-            method: 'PATCH',
-            headers: {'Content-type': 'application/json'},
-            body: JSON.stringify({z: tile.z-1}),
-          });
+        if (tile.z > initialZ){
+          patchTile(tile.id, {z: tile.z-1})
+            .catch((e: Error) => console.error("While moving a tile one step to the back:", e));
         }
       });
 
@@ -138,85 +129,22 @@ function BoardComponent({ myGet, myPost, tilesContent, setTilesContent, tilesCoo
         }
       }
     }
-  }, [tilesCoords]);
+  }, [tilesContent]);
 
 
-  // Add a new tile
+  // Add an empty tile at mouse position
 
-  function addTile(mouseX: number, mouseY:number) {
-    myPost("tiles", {
+  function addEmptyTile(mouseX: number, mouseY: number) {
+    addTile({
       text: '',
       truthValue: null,
       x: mouseX - board.x + initialBoardPosition[0],
       y: mouseY - board.y + initialBoardPosition[1],
       z: tilesCoords.length + 1,
-    }).then(() => myGet("tiles"))
-        // I need to get the id of the new tile to place arrow, hence this fetch GET
-        // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
-      .then(setTiles)
-      .catch((e: Error) => console.error("While adding a new tile, ", e));
-  }
-
-
-  // Delete a tile
-  
-  function deleteTile(id: number) {
-    // deletes arrows tied to the tile first, then the tile itself.
-
-    (async function() {
-      let arrowList: number[] = [];
-      // Tried this:
-      //await Promise.all(arrows.map(a => async () => {
-      // which didn't work. Why?
-      // TODO UNDERSTAND
-      // And I didn't understand either the solution I found on the web:
-      await Promise.all(arrows.map(async (a: Arrow) => {
-        if (a.from === id || a.to === id) {
-          await fetch(`http://localhost:5000/arrows/${a.id}`, {method: 'DELETE',});
-          arrowList.push(a.id);
-        }
-      }));
-      return arrowList;
-    })()
-      .then(res => setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id))))
-      .then(() => fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',}))
-      .then(() => setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id)))
-      .then(() => setTilesCoords((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id)))
-      .catch((e: Error) => console.error("While deleting arrows, ", e));
-  }
-
-
-  // Change a tile's truth value
-
-  function updateTruthValue(id: number, value: boolean|null) {
-    fetch(`http://localhost:5000/tiles/${id}`, {
-      method: 'PATCH',
-      headers: {'Content-type': 'application/json'},
-      body: JSON.stringify({truthValue: value}),
-    });
-
-    setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
-      tile.id===id ? {...tile, truthValue: value} : tile
-    ));
-  }
-
-
-  // Update text input by user
-
-  function updateText(id: number, text:string) {
-    setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
-      tile.id===id ? {...tile, text:text} : tile
-    ));
-
-    // Est-ce que ce n'est pas trop gourmand d'envoyer une requête à chaque caractère ajouté ou supprimé ? TODO à réfléchir
-    fetch(`http://localhost:5000/tiles/${id}`, {
-      method: 'PATCH',
-      headers: {'Content-type': 'application/json'},
-      body: JSON.stringify({text: text}),
     });
   }
 
-  
+
 
   // Arrows drawing
 
@@ -370,7 +298,7 @@ function BoardComponent({ myGet, myPost, tilesContent, setTilesContent, tilesCoo
       style = {{ left:board.x, top:board.y, width:board.w, height:board.h }}
       onMouseDown = {e => startDraggingBoard(e)}
       onDoubleClick = {e => {
-        if (!arrowMode) {addTile(e.clientX, e.clientY)}
+        if (!arrowMode) {addEmptyTile(e.clientX, e.clientY)}
       }}
     >
       <canvas width={board.w} height={board.h}>{/*Insérer des éléments pour remplacer les flèches*/}</canvas>
@@ -388,9 +316,9 @@ function BoardComponent({ myGet, myPost, tilesContent, setTilesContent, tilesCoo
           ref={saveTileRef(tileContent.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tileContent.id-1]} doesn't.
           tile={{...tileContent, ...tilesCoords.filter((t: TileCoords) => t.id===tileContent.id)[0]}}
           deleteTile={deleteTile}
-          updateTruthValue={updateTruthValue}
-          startDraggingTile={startDraggingTile}
-          updateText={updateText}
+          startDragging={startDraggingTile}
+          updateTruthValue={updateTileTruthValue}
+          updateText={updateTileText}
           arrowMode={arrowMode}
           setArrowMode={setArrowMode}
         />

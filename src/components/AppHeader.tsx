@@ -1,4 +1,4 @@
-export default function AppHeaderComponent({ myPost, arrows, setArrows, switchArrowMode }: any) {
+export default function AppHeaderComponent({ myGet, myPost, setTiles, arrows, setArrows, switchArrowMode }: any) {
 
   function demo() {
     const demoTiles = [
@@ -24,7 +24,12 @@ export default function AppHeaderComponent({ myPost, arrows, setArrows, switchAr
         z: 3,
       }
     ];
-    demoTiles.forEach(tile => myPost("tiles", tile));
+    demoTiles.forEach(tile => {
+      myPost("tiles", tile)
+        .then(() => myGet("tiles"))
+        .then(setTiles)
+        .catch((e: Error) => console.error("While adding a new tile:", e));
+    });
   }
 
   return(

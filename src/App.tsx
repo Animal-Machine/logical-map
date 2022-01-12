@@ -40,6 +40,14 @@ function App() {
     });
   };
 
+  const patchTile = async (id: number, updatedProperties: object) => {
+    return await fetch(`http://localhost:5000/tiles/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-type': 'application/json'},
+      body: JSON.stringify(updatedProperties),
+    });
+  }
+
 
   // Tiles and Arrows States
 
@@ -70,6 +78,65 @@ function App() {
     let { content, coords } = separateTileData(tiles);
     setTilesContent(content);
     setTilesCoords(coords);
+  }
+
+  // Add a new tile
+
+  function addTile(tile: TileData) {
+    myPost("tiles", tile)
+      .then(() => myGet("tiles"))
+        // I need to get the id of the new tile to place arrow, hence this fetch GET
+        // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
+      .then(setTiles)
+      .catch((e: Error) => console.error("While adding a new tile:", e));
+  }
+
+  // Delete a tile
+
+  function deleteTile(id: number) {
+    // deletes arrows tied to the tile first, then the tile itself.
+
+    (async function() {
+      let arrowList: number[] = [];
+      // Tried this:
+      //await Promise.all(arrows.map(a => async () => {
+      // which didn't work. Why?
+      // TODO UNDERSTAND
+      // And I didn't understand either the solution I found on the web:
+      await Promise.all(arrows.map(async (a: Arrow) => {
+        if (a.from === id || a.to === id) {
+          await fetch(`http://localhost:5000/arrows/${a.id}`, {method: 'DELETE',});
+          arrowList.push(a.id);
+        }
+      }));
+      return arrowList;
+    })()
+      .then(res => setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id))))
+      .then(() => fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',}))
+      .then(() => setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id)))
+      .then(() => setTilesCoords((t: TileCoords[]) => t.filter((tile: TileCoords) => tile.id !== id)))
+      .catch((e: Error) => console.error("While deleting arrows:", e));
+  }
+
+  // Change a tile's truth value
+
+  function updateTileTruthValue(id: number, value: boolean|null) {
+    patchTile(id, {truthValue: value})
+      .catch((e: Error) => console.error("While setting a tile's new truth value:", e));
+    setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
+      tile.id===id ? {...tile, truthValue: value} : tile
+    ));
+  }
+
+  // Change a tile's text
+
+  function updateTileText(id: number, text:string) {
+    patchTile(id, {text: text})
+      .catch((e: Error) => console.error("While setting a tile's new text:", e));
+      // Est-ce que ce n'est pas trop gourmand d'envoyer une requête à chaque caractère ajouté ou supprimé ? TODO à réfléchir
+    setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
+      tile.id===id ? {...tile, text:text} : tile
+    ));
   }
 
 
@@ -104,7 +171,7 @@ function App() {
         .then(() => myGet("arrows"))
         .then(setArrows)
         .then(() => setArrowMode(false))
-        .catch(e => console.error("While adding new arrow, ", e));
+        .catch(e => console.error("While adding new arrow:", e));
     }
   }
 
@@ -119,19 +186,22 @@ function App() {
   return (
     <div className="App">
       <AppHeaderComponent
+        myGet={myGet}
         myPost={myPost}
+        setTiles={setTiles}
         arrows={arrows}
         setArrows={setArrows}
         switchArrowMode={switchArrowMode}
       />
       <BoardComponent
-        myGet={myGet}
-        myPost={myPost}
+        addTile={addTile}
+        deleteTile={deleteTile}
+        patchTile={patchTile}
+        updateTileTruthValue={updateTileTruthValue}
+        updateTileText={updateTileText}
         tilesContent={tilesContent}
-        setTilesContent={setTilesContent}
         tilesCoords={tilesCoords}
         setTilesCoords={setTilesCoords}
-        setTiles={setTiles}
         arrows={arrows}
         setArrows={setArrows}
         arrowMode={arrowMode}

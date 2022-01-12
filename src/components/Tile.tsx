@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, forwardRef } from 'react';
 import TileMenuComponent from './TileMenu';
 
-const TileComponent = forwardRef(({ tile, deleteTile, updateTruthValue, startDraggingTile, updateText, arrowMode, setArrowMode }: any, ref: any) => {
+const TileComponent = forwardRef(({ tile, deleteTile, startDragging, updateTruthValue, updateText, arrowMode, setArrowMode }: any, ref: any) => {
 
   const [readonly, setReadonly] = useState(true);
     // state used for edition mode
@@ -14,7 +14,7 @@ const TileComponent = forwardRef(({ tile, deleteTile, updateTruthValue, startDra
       }
     } else {
       // Drag tile only with left button:
-      e.button===0 && readonly && startDraggingTile(tile.id, e.clientX, e.clientY);
+      e.button===0 && readonly && startDragging(tile.id, e.clientX, e.clientY);
     }
   }
 

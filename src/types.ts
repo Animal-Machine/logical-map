@@ -28,11 +28,11 @@ export interface ArrowCoords {
 }
 
 export interface Point {
-  x:number; y:number;
+  x: number; y: number;
 }
 
 export interface Rectangle {
-  x:number; y:number; w:number; h:number;
+  x: number; y: number; w: number; h: number;
 }
 
 export type DoubleCoords = [number, number, number, number];

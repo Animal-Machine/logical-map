@@ -1,51 +1,68 @@
 Étapes principales
 ––––––––––––––––––
 
-Remplacer tous les for-in par des for-of
+Z-order
+¯¯¯¯¯¯¯
+Revoir l'implémentation actuelle. Éventuellement retirer le champ côté serveur
+Fonction reset z-order, éventuellement avec bouton
 
-Contrôle et suppression des « flèches fantômes » (qui n'apparaissent désormais plus à l'écran)
-… ou pas. Devrais-je supposer un dysfonctionnement ?
+Calcul déductif
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Ajouter la fonctionnalité
 
-Boutons :
-demo
-reset z-order
+Système de sauvegarde
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Utiliser une autre base de données
+"Undo" button
+Import / export
 
-Modifier le système de coordonnées et supprimer "board" en tant que rectangle qui bouge.
-
-Remplacer le plus possible de ": any" dans Tile.tsx et Board.tsx
-
-Examiner à nouveau mon useEffect() avec openedMenu dans Tile.tsx
-
-Examiner attentivement le résultat de cette commande : console.log(getEventListeners(window));
-et modifier mon code
-
-Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
-
-Regarder comment mettre à jour React
-
-Système de sauvegarde et de "Undo"
+Board
+¯¯¯¯¯
+Permettre de zoomer et de dézoomer
+Empêcher d'en sortir
+L'agrandir lorsque l'utilisateur arrive au bord
 
 
 
 Étapes secondaires
 ––––––––––––––––––
 
+Examiner attentivement le résultat de cette commande : console.log(getEventListeners(window));
+et modifier mon code
+
+Corrections et préventions de bugs
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Contrôle et suppression des « flèches fantômes » (qui n'apparaissent désormais plus à l'écran)
+… ou pas. Devrais-je supposer un dysfonctionnement ?
+
+Examiner à nouveau mon useEffect() avec openedMenu dans Tile.tsx
+
+Remplacer le plus possible de ": any" dans Tile.tsx et Board.tsx
+
+
+Améliorations techniques
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Remplacer tous les for-in par des for-of
+
+Éventuellement transformer tilesCoords, mais peut-être d'autres states aussi, en objet de type Map.
+À réfléchir parce que plus performant, mais pas de support natif pour la conversion en JSON comme expliqué ici : https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+
+Optimiser les performances avec useMemo et useCallback
+
+Ajouter des switch() quand c'est possible
+
+Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
+
+Regarder comment mettre React à jour
+
+
+Améliorations graphiques
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Logo
 
 Mettre une plus jolie icône de suppression : https://iconscout.com/icon/delete-736
 
 CSS cursor: grab et grabbing pour les tuiles
-
-Utiliser SASS pour pouvoir faire des choses comme ça : 
-$main-color: #384048;/* Voir SASS (SCSS) pour utiliser ça.
-
-ECHAP pour quitter le mode texte
-
-Clic droit pour quitter le mode flèche
-
-Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier. Ou bien, lui permettre de cliquer mais ça ne change rien.
-
-Nouvelle tuile centrée et pas coin haut-gauche
 
 Triangle en bas de TileMenu
 
@@ -53,15 +70,23 @@ Ajuster la position de TileMenu en fonction de la place sur l'écran
 
 Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
 
-Optimiser les performances avec useMemo et useCallback
-
-Ajouter des switch() quand c'est possible
-
-Bouton démo : afficher les tuiles immédiatement. Corriger le lag
+Utiliser SASS pour pouvoir faire des choses comme ça :
+$main-color: #384048;/* Voir SASS (SCSS) pour utiliser ça.
 
 
+Améliorations de l'expérience utilisateur
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Nouvelle tuile centrée et pas coin haut-gauche
 
-Étapes terminées
-––––––––––––––––
+ECHAP pour quitter le mode texte
+
+Clic droit pour quitter le mode flèche
+
+Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier. Ou bien, lui permettre de cliquer mais ça ne change rien.
+
+
+
+Étapes principales terminées
+––––––––––––––––––––––––––––
 
 TileMenu fonctionnel
