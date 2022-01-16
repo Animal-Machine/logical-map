@@ -27,13 +27,15 @@ function App() {
 
   // Custom fetch functions
 
+  const myServerAddress = "http://localhost:5000/";
+
   const myGet = async (address: Address) => {
-    const res = await fetch('http://localhost:5000/'+address);
+    const res = await fetch(myServerAddress + address);
     return await res.json();
   };
 
   const myPost = async (address: Address, data: object) => {
-    return await fetch('http://localhost:5000/'+address, {
+    return await fetch(myServerAddress + address, {
       method: 'POST',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify(data),
@@ -41,7 +43,7 @@ function App() {
   };
 
   const patchTile = async (id: number, updatedProperties: object) => {
-    return await fetch(`http://localhost:5000/tiles/${id}`, {
+    return await fetch(`${myServerAddress}tiles/${id}`, {
       method: 'PATCH',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify(updatedProperties),
@@ -59,7 +61,47 @@ function App() {
 
   const [arrows, setArrows] = useState<Arrow[]>([]);
     // contains the properties "from", "to" (ids of the linked tiles) and "id"
-  
+
+  let [zMax, setZMax] = useState<number>(0);
+    // contains the highest z coordinate, used when putting a tile to the foreground
+
+
+  // Loading tiles and arrows on page
+
+  useEffect(() => {
+    myGet("tiles")
+      .then((tiles: TileData[]): [TileData[], boolean] => {
+        let zValues = tiles.map((t: TileData) => t.z);
+        // if the highest z is too big, we reset z values to keep them reasonably small:
+        if (Math.max(...zValues) > 50 * zValues.length) {
+          setZMax(zValues.length); // zMax initialization (reset)
+          zValues.sort(); // to keep the z-order, we use the indexes of the z values
+          return([tiles.map((t: TileData) => ({...t, z: zValues.indexOf(t.z)+1})), true]);
+            // tiles with updated z are passed on to "then"
+        }
+        setZMax(Math.max(...zValues)); // zMax initialization
+        return([tiles, false]);
+          // because of this "false", the next "then" is practically going to be ignored
+      })
+      .then(([tiles, zReset]): Promise<TileData[]> => {
+        // update z on server if needed, and pass "tiles" on again
+        if (zReset) {
+          return (async function() {
+            for (const tile of tiles) {
+              await patchTile(tile.id, {z: tile.z});
+            };
+          })().then(() => tiles);
+        } else {
+          return Promise.resolve(tiles);
+        }
+      })
+      .then(setTiles)
+      .then(() => myGet("arrows"))
+      .then(setArrows)
+      .catch(e => console.error("Couldn't fetch data. ", e));
+  }, []);
+
+
   function separateTileData(T: TileData[]) {
     // In the database, there is only one table called "tiles".
     // Therefore, I need this function to convert it into the two states
@@ -83,11 +125,12 @@ function App() {
   // Add a new tile
 
   function addTile(tile: TileData) {
-    myPost("tiles", tile)
+    myPost("tiles", {...tile, z: zMax+1})
       .then(() => myGet("tiles"))
         // I need to get the id of the new tile to place arrow, hence this fetch GET
         // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
       .then(setTiles)
+      .then(() => setZMax(zMax => zMax + 1))
       .catch((e: Error) => console.error("While adding a new tile:", e));
   }
 
@@ -105,14 +148,14 @@ function App() {
       // And I didn't understand either the solution I found on the web:
       await Promise.all(arrows.map(async (a: Arrow) => {
         if (a.from === id || a.to === id) {
-          await fetch(`http://localhost:5000/arrows/${a.id}`, {method: 'DELETE',});
+          await fetch(`${myServerAddress}arrows/${a.id}`, {method: 'DELETE',});
           arrowList.push(a.id);
         }
       }));
       return arrowList;
     })()
       .then(res => setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id))))
-      .then(() => fetch(`http://localhost:5000/tiles/${id}`, {method: 'DELETE',}))
+      .then(() => fetch(`${myServerAddress}tiles/${id}`, {method: 'DELETE',}))
       .then(() => setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id)))
       .then(() => setTilesCoords((t: TileCoords[]) => t.filter((tile: TileCoords) => tile.id !== id)))
       .catch((e: Error) => console.error("While deleting arrows:", e));
@@ -138,14 +181,6 @@ function App() {
       tile.id===id ? {...tile, text:text} : tile
     ));
   }
-
-
-  // Fetch tiles and arrows on page load
-
-  useEffect(() => {
-    myGet("tiles") .then(setTiles) .catch(e => console.error("Couldn't fetch data. ", e));
-    myGet("arrows").then(setArrows).catch(e => console.error("Couldn't fetch data. ", e));
-  }, []);
 
 
   // Arrow Mode
@@ -177,7 +212,7 @@ function App() {
 
   function deleteArrow(id: number) {
     setArrows(arrows => arrows.filter(a => a.id !== id));
-    fetch(`http://localhost:5000/arrows/${id}`, {method: 'DELETE'});
+    fetch(`${myServerAddress}arrows/${id}`, {method: 'DELETE'});
   }
 
   
@@ -202,6 +237,8 @@ function App() {
         tilesContent={tilesContent}
         tilesCoords={tilesCoords}
         setTilesCoords={setTilesCoords}
+        zMax={zMax}
+        setZMax={setZMax}
         arrows={arrows}
         setArrows={setArrows}
         arrowMode={arrowMode}

@@ -1,18 +1,13 @@
 Étapes principales
 ––––––––––––––––––
 
-Z-order
-¯¯¯¯¯¯¯
-Revoir l'implémentation actuelle. Éventuellement retirer le champ côté serveur
-Fonction reset z-order, éventuellement avec bouton
-
 Calcul déductif
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Ajouter la fonctionnalité
 
-Système de sauvegarde
+Base de données
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Utiliser une autre base de données
+Changer le backend
 "Undo" button
 Import / export
 
@@ -32,8 +27,11 @@ et modifier mon code
 
 Corrections et préventions de bugs
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Contrôle et suppression des « flèches fantômes » (qui n'apparaissent désormais plus à l'écran)
-… ou pas. Devrais-je supposer un dysfonctionnement ?
+Supprimer les « flèches fantômes » (qui n'apparaissent désormais plus à l'écran car l'exception est gérée)
+
+Reprogrammer le déclenchement du contrôle des z (actuellement avec zJustChanged).
+Il faudrait peut-être créer un state différent de tilesCoords pour z.
+Ajouter une fonctionnalité automatique de reset z-order quand une erreur est trouvée.
 
 Examiner à nouveau mon useEffect() avec openedMenu dans Tile.tsx
 
@@ -54,6 +52,8 @@ Ajouter des switch() quand c'est possible
 Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
 
 Regarder comment mettre React à jour
+
+Gérer le reset des z-values côté backend.
 
 
 Améliorations graphiques
@@ -89,4 +89,5 @@ Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, po
 Étapes principales terminées
 ––––––––––––––––––––––––––––
 
-TileMenu fonctionnel
+Composants TileMenu, Arrow et AppHeader fonctionnels
+Z-order correctement géré

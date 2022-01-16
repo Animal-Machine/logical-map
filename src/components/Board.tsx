@@ -4,7 +4,7 @@ import ArrowComponent from './Arrow';
 import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions';
 import { TileData, TileContent, TileCoords, Arrow, ArrowCoords, Point, Rectangle } from '../types';
 
-function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, updateTileText, tilesContent, tilesCoords, setTilesCoords, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
+function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, updateTileText, tilesContent, tilesCoords, setTilesCoords, zMax, setZMax, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
 
  
   // Board State
@@ -90,34 +90,28 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
     movingTileId = null;
   };
 
-  // Bring tile to the foreground (called by startDraggingTile)
-    // TODO: optimization (patchTile and update tilesCoord state in the same conditional statements? Only patch sometimes?)
+  // Bring a tile to the foreground (called by startDraggingTile)
 
   function foreground(id: number) {
-    let [{z:initialZ}]: [{z:number}] = tilesCoords.filter((tile: TileCoords) => tile.id===id)
-
-    if (initialZ !== tilesCoords.length) {
-      patchTile(id, {z: tilesCoords.length})
-        .catch((e: Error) => console.error("While moving a tile to the foreground:", e));
-      tilesCoords.forEach((tile: TileCoords) => {
-        if (tile.z > initialZ){
-          patchTile(tile.id, {z: tile.z-1})
-            .catch((e: Error) => console.error("While moving a tile one step to the back:", e));
-        }
-      });
-
-      setTilesCoords((t: TileCoords[]) => t.map((tile: TileCoords) =>
-        tile.id===id ? {...tile, z:t.length}
-                     : tile.z<initialZ ? tile
-                                       : {...tile, z:tile.z-1}
-      ));
-    }
+    patchTile(id, {z: zMax+1})
+      .then(() => {
+        setTilesCoords((t: TileCoords[]) => t.map((tile: TileCoords) =>
+          tile.id===id ? {...tile, z:zMax+1} : tile
+        ));
+      })
+      .then(() => setZMax((zMax: number) => zMax + 1))
+      .catch((e: Error) => console.error("While moving a tile to the foreground:", e));
   }
 
   // Control z and throw error if two tiles have the same
-  // TODO: less often for performance
 
-  useEffect(() => {
+  let [zJustChanged, setZJustChanged] = useState(false);
+  //useEffect(() => { zJustChanged = true; }, [tilesCoords]); //TODO really check if z has changed
+  useEffect(() => { setZJustChanged(true); }, [zMax]); // provisory solution
+  // The problem here is that tilesCoords changes continuously when the user moves a tile, which floods the console.
+  // A solution could be to have a state for z values, separated from tilesCoords.
+
+  useEffect(() => { if (zJustChanged) {
     for (let i = 0; i < tilesCoords.length; i++) {
       for (let j = 0; j < i; j++) {
         try {
@@ -129,7 +123,8 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
         }
       }
     }
-  }, [tilesContent]);
+    setZJustChanged(false);
+  }}, [zJustChanged, tilesContent, tilesCoords]);
 
 
   // Add an empty tile at mouse position
@@ -140,7 +135,6 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
       truthValue: null,
       x: mouseX - board.x + initialBoardPosition[0],
       y: mouseY - board.y + initialBoardPosition[1],
-      z: tilesCoords.length + 1,
     });
   }
 
