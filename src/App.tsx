@@ -166,22 +166,23 @@ function App() {
 
     (async function() {
       let arrowList: number[] = [];
-      // Tried this:
-      //await Promise.all(arrows.map(a => async () => {
-      // which didn't work. Why?
-      // TODO UNDERSTAND
-      // And I didn't understand either the solution I found on the web:
-      await Promise.all(arrows.map(async (a: Arrow) => {
+      for (let i = 0; i < arrows.length; i++) {
+        let a = arrows[i];
         if (a.from === id || a.to === id) {
           await fetch(`${myServerAddress}arrows/${a.id}`, {method: 'DELETE',});
           arrowList.push(a.id);
         }
+      }
+      await Promise.all(arrows.map(async (a: Arrow) => {
       }));
       return arrowList;
     })()
-      .then(res => setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id))))
-      .then(() => fetch(`${myServerAddress}tiles/${id}`, {method: 'DELETE',}))
-      .then(() => {
+      .then(res => {
+        fetch(`${myServerAddress}tiles/${id}`, {method: 'DELETE',});
+        return res;
+      })
+      .then(res => {
+        setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id)));
         setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id));
         setTilesXY((t: TileXY[]) => t.filter((tile: TileXY) => tile.id !== id));
         setTilesZ((t: TileZ[]) => t.filter((tile: TileZ) => tile.id !== id));
