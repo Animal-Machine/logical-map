@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
 import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions';
-import { TileData, TileContent, TileCoords, Arrow, ArrowCoords, Point, Rectangle } from '../types';
+import { TileData, TileContent, TileXY, TileZ, Arrow, ArrowCoords, Point, Rectangle } from '../types';
 
-function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, updateTileText, tilesContent, tilesCoords, setTilesCoords, zMax, setZMax, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
+function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateTileTruthValue, updateTileText, tilesContent, tilesXY, setTilesXY, tilesZ, setTilesZ, zMax, setZMax, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
 
  
   // Board State
@@ -63,7 +63,8 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
     foreground(id);
     movingTileId = id;
 
-    let [{x:tileInitialX, y:tileInitialY}]: [{x: number, y:number}] = tilesCoords.filter((tile:TileData)=>tile.id===id);
+    let [{ x:tileInitialX, y:tileInitialY }]: [{x: number, y:number}]
+      = tilesXY.filter((tile:TileXY)=>tile.id===id);
     mouseRelToEltX = mouseX - tileInitialX;
     mouseRelToEltY = mouseY - tileInitialY;
 
@@ -72,8 +73,8 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
   };
 
   function dragTile(e: MouseEvent) {
-    setTilesCoords((t: TileCoords[]) => t.map((tile: TileCoords) =>
-      tile.id===movingTileId ? { ...tile,
+    setTilesXY((t: TileXY[]) => t.map((tile: TileXY) =>
+      tile.id===movingTileId ? { id: tile.id,
                                  x: e.clientX-mouseRelToEltX,
                                  y: e.clientY-mouseRelToEltY } 
                              : tile
@@ -83,7 +84,8 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
   function stopDraggingTile(e: MouseEvent) {
     patchTile(movingTileId, {
       x: e.clientX-mouseRelToEltX,
-      y: e.clientY-mouseRelToEltY
+      y: e.clientY-mouseRelToEltY,
+      //z: zMax.z // If in the future, there are errors because of too many concurrent patches, this could be a way to fix it. Unfortunately, zMax is sometimes at its current state, sometimes not. A solution could be to make foreground function to return zMax.z
     }).catch((e: Error) => console.error("While setting a tile's new coordinates:", e));
     window.removeEventListener('mousemove', dragTile);
     window.removeEventListener('mouseup', stopDraggingTile);
@@ -93,30 +95,30 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
   // Bring a tile to the foreground (called by startDraggingTile)
 
   function foreground(id: number) {
-    patchTile(id, {z: zMax+1})
-      .then(() => {
-        setTilesCoords((t: TileCoords[]) => t.map((tile: TileCoords) =>
-          tile.id===id ? {...tile, z:zMax+1} : tile
-        ));
-      })
-      .then(() => setZMax((zMax: number) => zMax + 1))
-      .catch((e: Error) => console.error("While moving a tile to the foreground:", e));
+    if (id !== zMax.id) {
+      patchTile(id, {z: zMax.z+1})
+        .then(() => {
+          setTilesZ((t: TileZ[]) => t.map((tile: TileZ) =>
+            tile.id===id ? {id: id, z: zMax.z+1} : tile
+          ));
+        })
+        .then(() => setZMax((zMax: TileZ) => ({id: id, z: zMax.z+1})))
+        .catch((e: Error) => console.error("While moving a tile to the foreground:", e));
+    }
   }
+
 
   // Control z and throw error if two tiles have the same
 
   let [zJustChanged, setZJustChanged] = useState(false);
-  //useEffect(() => { zJustChanged = true; }, [tilesCoords]); //TODO really check if z has changed
-  useEffect(() => { setZJustChanged(true); }, [zMax]); // provisory solution
-  // The problem here is that tilesCoords changes continuously when the user moves a tile, which floods the console.
-  // A solution could be to have a state for z values, separated from tilesCoords.
+  useEffect(() => { zJustChanged = true; }, [tilesZ]);
 
   useEffect(() => { if (zJustChanged) {
-    for (let i = 0; i < tilesCoords.length; i++) {
+    for (let i = 0; i < tilesZ.length; i++) {
       for (let j = 0; j < i; j++) {
         try {
-          if (tilesCoords[i].z === tilesCoords[j].z) {
-            throw new Error(`These two tiles have the same z :\n${tilesCoords[j].id} "${tilesContent[j].text}" and ${tilesCoords[i].id} "${tilesContent[i].text}"`);
+          if (tilesZ[i].z === tilesZ[j].z) {
+            throw new Error(`These two tiles have the same z :\n${tilesZ[j].id} "${tilesContent[j].text}" and ${tilesZ[i].id} "${tilesContent[i].text}"`);
           }
         } catch(e) {
           console.error(e)
@@ -124,7 +126,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
       }
     }
     setZJustChanged(false);
-  }}, [zJustChanged, tilesContent, tilesCoords]);
+  }}, [zJustChanged, tilesContent, tilesZ]);
 
 
   // Add an empty tile at mouse position
@@ -188,7 +190,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
     // hence the filter just below which will prevent drawing attempt.
 
     }).filter((a: ArrowCoords) => a));
-  }, [tilesCoords, arrows]);
+  }, [tilesXY, arrows]);
 
 
   /// Update coordinates of the arrow being placed in arrow mode, and place the arrow
@@ -304,11 +306,11 @@ function BoardComponent({ addTile, deleteTile, patchTile, updateTileTruthValue, 
           deleteArrow={deleteArrow}
         />
       )}
-      {tilesContent.map((tileContent: TileContent) =>
+      {mergeTileData(tilesContent, tilesXY, tilesZ).map((tile: TileData) =>
         <TileComponent
-          key={tileContent.id}
-          ref={saveTileRef(tileContent.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tileContent.id-1]} doesn't.
-          tile={{...tileContent, ...tilesCoords.filter((t: TileCoords) => t.id===tileContent.id)[0]}}
+          key={tile.id}
+          ref={saveTileRef(tile.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tileContent.id-1]} doesn't.
+          tile={tile}
           deleteTile={deleteTile}
           startDragging={startDraggingTile}
           updateTruthValue={updateTileTruthValue}

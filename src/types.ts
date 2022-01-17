@@ -11,8 +11,13 @@ export interface TileContent {
   id: number;
 }
 
-export interface TileCoords {
-  x: number; y: number; z: number;
+export interface TileXY {
+  x: number; y: number;
+  id: number;
+}
+
+export interface TileZ {
+  z: number;
   id: number;
 }
 

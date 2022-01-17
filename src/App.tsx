@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import BoardComponent from './components/Board';
 import AppHeaderComponent from './components/AppHeader';
-import { Address, TileData, TileContent, TileCoords, Arrow } from './types';
+import { Address, TileData, TileContent, TileXY, TileZ, Arrow } from './types';
 
 function App() {
 
@@ -56,14 +56,17 @@ function App() {
   const [tilesContent, setTilesContent] = useState<TileContent[]>([]);
     // contains the properties "text", "truthValue" and "id"
 
-  const [tilesCoords, setTilesCoords] = useState<TileCoords[]>([]);
-    // contains "x", "y" and "z" (used for css z-index property)
+  const [tilesXY, setTilesXY] = useState<TileXY[]>([]);
+    // position on the board
+
+  const [tilesZ, setTilesZ] = useState<TileZ[]>([]);
+    // relative height, used by css property z-index
+
+  let [zMax, setZMax] = useState<TileZ>({z:0, id:0});
+    // contains the highest z coordinate, used when putting a tile to the foreground
 
   const [arrows, setArrows] = useState<Arrow[]>([]);
     // contains the properties "from", "to" (ids of the linked tiles) and "id"
-
-  let [zMax, setZMax] = useState<number>(0);
-    // contains the highest z coordinate, used when putting a tile to the foreground
 
 
   // Loading tiles and arrows on page
@@ -72,14 +75,16 @@ function App() {
     myGet("tiles")
       .then((tiles: TileData[]): [TileData[], boolean] => {
         let zValues = tiles.map((t: TileData) => t.z);
+        let max = Math.max(...zValues);
+        let id = tiles.filter((t: TileData) => t.z === max)[0].id
         // if the highest z is too big, we reset z values to keep them reasonably small:
-        if (Math.max(...zValues) > 50 * zValues.length) {
-          setZMax(zValues.length); // zMax initialization (reset)
+        if (max > 50 * zValues.length) {
           zValues.sort(); // to keep the z-order, we use the indexes of the z values
+          setZMax({id: id, z: zValues.length}); // zMax initialization (reset)
           return([tiles.map((t: TileData) => ({...t, z: zValues.indexOf(t.z)+1})), true]);
             // tiles with updated z are passed on to "then"
         }
-        setZMax(Math.max(...zValues)); // zMax initialization
+        setZMax({id: id, z: max}); // zMax initialization
         return([tiles, false]);
           // because of this "false", the next "then" is practically going to be ignored
       })
@@ -98,39 +103,59 @@ function App() {
       .then(setTiles)
       .then(() => myGet("arrows"))
       .then(setArrows)
-      .catch(e => console.error("Couldn't fetch data. ", e));
+      .catch(e => console.error("Couldn't fetch data.", e));
   }, []);
 
 
-  function separateTileData(T: TileData[]) {
+  function mergeTileData(TContent: TileContent[], TXY: TileXY[], TZ: TileZ[]): TileData[] {
     // In the database, there is only one table called "tiles".
-    // Therefore, I need this function to convert it into the two states
-    // "tilesContent" and "tilesCoords"
+    // Therefore, I need this function to convert the three states
+    // "tilesContent", "tilesXY" and "tilesZ" to it.
+    let T: TileData[] = [];
+    for (let i = 0; i < TContent.length; i++) {
+      let id = TContent[i].id;
+      let txy = TXY.filter((t: TileXY) => t.id === id);
+      let tz = TZ.filter((t: TileZ) => t.id === id);
+      if (txy.length && tz.length) {
+        T.push({...TContent[i], ...txy[0], ...tz[0]});
+      }
+    }
+    return T;
+  }
+
+  function separateTileData(T: TileData[]): {content:TileContent[], coordsXY:TileXY[], coordsZ:TileZ[]} {
+    // inverse function of mergeTileData
     let TContent: TileContent[] = [];
-    let TCoords: TileCoords[] = [];
+    let TXY: TileXY[] = [];
+    let TZ: TileZ[] = [];
     T.forEach(t => {
       TContent.push({id:t.id, text:t.text, truthValue:t.truthValue});
-      TCoords.push({id:t.id, x:t.x, y:t.y, z:t.z});
+      TXY.push({id:t.id, x:t.x, y:t.y});
+      TZ.push({id:t.id, z:t.z});
     });
-    return {content:TContent, coords:TCoords};
+    return {content:TContent, coordsXY:TXY, coordsZ:TZ};
   }
 
   function setTiles(tiles: TileData[]) {
-    // sets tilesContent and tilesCoords with tiles data from the server
-    let { content, coords } = separateTileData(tiles);
+    // sets tilesContent and tilesXY with tiles data from the server
+    let { content, coordsXY, coordsZ } = separateTileData(tiles);
     setTilesContent(content);
-    setTilesCoords(coords);
+    setTilesXY(coordsXY);
+    setTilesZ(coordsZ);
   }
 
   // Add a new tile
 
   function addTile(tile: TileData) {
-    myPost("tiles", {...tile, z: zMax+1})
+    myPost("tiles", {...tile, z: zMax.z+1})
       .then(() => myGet("tiles"))
         // I need to get the id of the new tile to place arrow, hence this fetch GET
         // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
-      .then(setTiles)
-      .then(() => setZMax(zMax => zMax + 1))
+      .then((newTiles: TileData[]) => {
+        setTiles(newTiles);
+        return newTiles.filter((t: TileData) => t.z === zMax.z+1)[0].id;
+      })
+      .then((id: number) => setZMax(zMax => ({id: id, z: zMax.z+1})))
       .catch((e: Error) => console.error("While adding a new tile:", e));
   }
 
@@ -156,8 +181,11 @@ function App() {
     })()
       .then(res => setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id))))
       .then(() => fetch(`${myServerAddress}tiles/${id}`, {method: 'DELETE',}))
-      .then(() => setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id)))
-      .then(() => setTilesCoords((t: TileCoords[]) => t.filter((tile: TileCoords) => tile.id !== id)))
+      .then(() => {
+        setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id));
+        setTilesXY((t: TileXY[]) => t.filter((tile: TileXY) => tile.id !== id));
+        setTilesZ((t: TileZ[]) => t.filter((tile: TileZ) => tile.id !== id));
+      })
       .catch((e: Error) => console.error("While deleting arrows:", e));
   }
 
@@ -232,11 +260,14 @@ function App() {
         addTile={addTile}
         deleteTile={deleteTile}
         patchTile={patchTile}
+        mergeTileData={mergeTileData}
         updateTileTruthValue={updateTileTruthValue}
         updateTileText={updateTileText}
         tilesContent={tilesContent}
-        tilesCoords={tilesCoords}
-        setTilesCoords={setTilesCoords}
+        tilesXY={tilesXY}
+        setTilesXY={setTilesXY}
+        tilesZ={tilesZ}
+        setTilesZ={setTilesZ}
         zMax={zMax}
         setZMax={setZMax}
         arrows={arrows}
