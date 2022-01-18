@@ -60,6 +60,8 @@ Améliorations graphiques
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Logo
 
+Lorsqu'une nouvelle flèche est placée, elle pointe initialement vers la valeur initiale de arrowTip, non actualisée. Cela cesse lorsque la souris bouge. J'ai trouvé que cela venait d'un dysfonctionnement de l'événement mousemove, qui donne de mauvaises propriétés clientX/Y et target à chaque clic.
+
 Mettre une plus jolie icône de suppression : https://iconscout.com/icon/delete-736
 
 CSS cursor: grab et grabbing pour les tuiles

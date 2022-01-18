@@ -22,7 +22,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
 
   // Dragging
 
-  // Coordsinates of the mouse relative to the top-left corner
+  // Coordinates of the mouse relative to the top-left corner
   // of the dragged element (used in both tile and board dragging):
   let mouseRelToEltX: number;
   let mouseRelToEltY: number;
@@ -183,7 +183,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
 
         return {id: a.id, coords: coords, highlight: false};
       }
-      catch(err) {console.log(err)}
+      catch(err) {console.error(err)}
 
     // The function will return undefined if the given arrow misses
     // one of its tiles (which can happen when a syncing problem occurs),
@@ -193,90 +193,111 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
   }, [tilesXY, arrows]);
 
 
-  /// Update coordinates of the arrow being placed in arrow mode, and place the arrow
-
-  const [arrowTip, setArrowTip] = useState<Point | Rectangle>({x: 0, y: 0}); // TODO find a better initial value?
-    // state used in arrow mode, represents the coordinates of the arrow tip
-
-  useEffect(() => {
-
-    // Function to update the arrow tip, active when the user must choose a second tile:
-    function updateArrowTip(e: any) {
-      if (Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target)).length === 0)
-        // if no tile is targeted, arrowTip takes the mouse coordinates:
-      {
-        setArrowTip({
-          x: e.clientX - board.x,
-          y: e.clientY - board.y,
-        });
-      }
-      else
-        // if there is one, arrowTip takes its coordinates, width and height
-      {
-        setArrowTip({
-          x: e.target.offsetLeft,
-          y: e.target.offsetTop,
-          w: e.target.offsetWidth,
-          h: e.target.offsetHeight,
-        });
-      }
-    }
-
-    // Function to place the arrow and exit arrow mode if the user clicks on a tile:
-    function onClick(e: any) {
-      if (e.target.tagName === "TEXTAREA") {
-        const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
-        if (targetTileId !== arrowMode) {
-          addArrow(arrowMode, targetTileId);
-        }
-      }
-    }
-
-    if (typeof arrowMode !== "boolean") {
-      window.addEventListener('mousemove', updateArrowTip);
-      window.addEventListener('click', onClick);
-    }
-    return () => {
-      window.removeEventListener('mousemove', updateArrowTip)
-      window.removeEventListener('click', onClick);
-    };
-  }, [arrowMode, board]);
-  // board is in the dependency array to get the updated value in updateArrowTip scope
-
-
   /// Draw all arrows
 
   useEffect(() => {
-    let canvas = document.querySelector('canvas');
+
+    let stop = false; // used to stop the loop when re-rendering
+    let mousePosition: Point = {x: 0, y: 0};
+    let mouseTarget: HTMLElement | null;
+    const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
+    let ctx: CanvasRenderingContext2D | null;
     if (canvas) {
-      let ctx = canvas.getContext('2d');
+      // canvas is not supported by some browsers
+      ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.clearRect(0, 0, board.w, board.h);
-        ctx.strokeStyle = 'white';
-        ctx.beginPath();
-        for (let i in arrowsCoords) {
-          if (arrowsCoords[i].coords) {
-            drawDoubleArrow(ctx, arrowsCoords[i].coords)
-            if (arrowsCoords[i].highlight) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
+        if (arrowMode) {
+          window.addEventListener('mousemove', updateMousePosition);
+            // window, NOT canvas: else the target will always be the canvas
+          if (arrowMode !== true) {
+            // see state declaration to understand arrowMode
+            window.addEventListener('click', onClickPlaceArrow);
           }
         }
-        if (typeof arrowMode !== "boolean") {
-          let tileFrom = tileRefs[arrowMode-1];
-          drawDoubleArrow(ctx, calculateArrowEnds(
-            {
-              x: tileFrom.offsetLeft,
-              y: tileFrom.offsetTop,
-              w: tileFrom.offsetWidth,
-              h: tileFrom.offsetHeight,
-            },
-            arrowTip
-          ));
-        }
-        ctx.stroke();
-        ctx.closePath();
+        loop(ctx);
       }
-    } //else: si canvas n'est pas supporté
-  }, [arrowsCoords, arrowMode, arrowTip]);
+    }
+
+    function onClickPlaceArrow(e: any) {
+    // function to place the arrow and exit arrow mode if the user clicks on a tile
+      if (e.target.tagName === "TEXTAREA") {
+        const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
+        if (targetTileId !== arrowMode) {
+          addArrow(arrowMode, targetTileId); // also sets arrowMode to false
+        }
+      }
+    }
+
+    function updateMousePosition(event: MouseEvent) {
+      // used in arrow mode, to detect when the user clicks on a tile and update the tip of the arrow
+      mousePosition.x = event.clientX;
+      mousePosition.y = event.clientY;
+      mouseTarget = event.target as HTMLElement;
+    }
+
+    function loop(ctx: CanvasRenderingContext2D) {
+      // animation loop which draws on the canvas context
+      ctx.clearRect(0, 0, board.w, board.h);
+      ctx.strokeStyle = 'white';
+      ctx.beginPath();
+      for (let i in arrowsCoords) {
+        if (arrowsCoords[i].coords) {
+          drawDoubleArrow(ctx, arrowsCoords[i].coords)
+          if (arrowsCoords[i].highlight) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
+        }
+      }
+      if (typeof arrowMode !== "boolean") {
+        let tileFrom = tileRefs[arrowMode-1];
+        drawDoubleArrow(ctx, calculateArrowEnds(
+          {
+            x: tileFrom.offsetLeft,
+            y: tileFrom.offsetTop,
+            w: tileFrom.offsetWidth,
+            h: tileFrom.offsetHeight,
+          },
+          getArrowTip()
+        ));
+      }
+      ctx.stroke();
+      ctx.closePath();
+      if (stop) { return; }
+      else { window.requestAnimationFrame(() => loop(ctx)); }
+    }
+
+    function getArrowTip(): Point | Rectangle {
+      // function giving the arrow tip, active when the user must choose a second tile
+      let arrowTip: Point | Rectangle = {x: 1000, y: 1000}; // TODO find a better initial value?
+      if (Object.keys(tileRefs).filter(key => (tileRefs[key] === mouseTarget)).length === 0)
+        // if no tile is targeted, arrowTip takes the mouse coordinates:
+      {
+        arrowTip = {
+          x: mousePosition.x - board.x,
+          y: mousePosition.y - board.y,
+        };
+      }
+      else if (mouseTarget)
+        // if there is one, arrowTip takes its coordinates, width and height
+      {
+        arrowTip = {
+          x: mouseTarget.offsetLeft,
+          y: mouseTarget.offsetTop,
+          w: mouseTarget.offsetWidth,
+          h: mouseTarget.offsetHeight,
+        };
+      };
+      return arrowTip;
+    }
+
+    return () => {
+      stop = true;
+      if (arrowMode && canvas) {
+        window.removeEventListener('mousemove', updateMousePosition);
+        if (arrowMode !== true) {
+          window.removeEventListener('click', onClickPlaceArrow);
+        }
+      }
+    };
+  }, [arrowsCoords, arrowMode, board]);
 
 
   // Highlight arrow when cursor is on it
