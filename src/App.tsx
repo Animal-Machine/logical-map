@@ -74,6 +74,12 @@ function App() {
   useEffect(() => {
     myGet("tiles")
       .then((tiles: TileData[]): [TileData[], boolean] => {
+        if (tiles.length === 0) {
+          // If there is no tile, zMax is reset to 0:
+          setZMax({id: 0, z: 0});
+          // Because of this "false", the next "then" is practically going to be ignored:
+          return([tiles, false]);
+        }
         let zValues = tiles.map((t: TileData) => t.z);
         let max = Math.max(...zValues);
         let id = tiles.filter((t: TileData) => t.z === max)[0].id
@@ -86,7 +92,6 @@ function App() {
         }
         setZMax({id: id, z: max}); // zMax initialization
         return([tiles, false]);
-          // because of this "false", the next "then" is practically going to be ignored
       })
       .then(([tiles, zReset]): Promise<TileData[]> => {
         // update z on server if needed, and pass "tiles" on again
