@@ -1,6 +1,13 @@
 Étapes principales
 ––––––––––––––––––
 
+Types de flèche
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Bouton menu flèche
+Flèche NOT
+Flèche AND
+Flèche OR
+
 Calcul déductif
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Ajouter la fonctionnalité
@@ -85,6 +92,12 @@ ECHAP pour quitter le mode texte
 Clic droit pour quitter le mode flèche
 
 Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier. Ou bien, lui permettre de cliquer mais ça ne change rien.
+
+
+Fonctionnalités futures
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Nouveau composant : l'union
+Probabilités
 
 
 

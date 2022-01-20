@@ -246,7 +246,10 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
           if (arrowsCoords[i].highlight) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
         }
       }
-      if (typeof arrowMode !== "boolean") {
+      if (typeof arrowMode === "number" && mouseTarget) {
+        // mouseTarget is important here because when arrowMode just changed,
+        // the event handler updateMousePosition has just been placed and didn't run,
+        // so mousePosition and mouseTarget have their default value
         let tileFrom = tileRefs[arrowMode-1];
         drawDoubleArrow(ctx, calculateArrowEnds(
           {
@@ -255,7 +258,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
             w: tileFrom.offsetWidth,
             h: tileFrom.offsetHeight,
           },
-          getArrowTip()
+          getArrowTip(),
         ));
       }
       ctx.stroke();
