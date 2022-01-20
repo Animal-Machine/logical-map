@@ -6,14 +6,14 @@ import { Address, TileData, TileContent, TileXY, TileZ, Arrow } from './types';
 
 function App() {
 
-  const preventDef = (e: MouseEvent) => e.preventDefault();
-  const keydown = (e:KeyboardEvent) => {
-    if (e.code === "Escape") {
-      setArrowMode(false);
-    }
-  }
 
   useEffect(() => {
+    const preventDef = (e: MouseEvent) => e.preventDefault();
+    const keydown = (e: KeyboardEvent) => {
+      if (e.code === "Escape") {
+        setArrowMode(false);
+      }
+    }
     // On Mount:
     window.addEventListener('contextmenu', preventDef);
     window.addEventListener('keydown', keydown);
@@ -225,6 +225,21 @@ function App() {
     // and set to an integer which is the tile id when a first tile
     // has been clicked on. When a second tile is selected,
     // the arrow is created and the arrow mode is exited.
+ 
+  useEffect(() => {
+    const goBack = (e: MouseEvent) => {
+      // Allows the user to unselect the first tile
+      // or exit arrow mode with a right click
+      if (typeof arrowMode === "number") {
+        setArrowMode(true);
+      } else { setArrowMode(false); }
+    }
+
+    window.addEventListener('contextmenu', goBack);
+    return () => {
+      window.removeEventListener('contextmenu', goBack);
+    }
+  }, [arrowMode])
 
   function switchArrowMode() {
     setArrowMode(m => !m);

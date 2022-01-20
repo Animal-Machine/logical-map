@@ -35,9 +35,8 @@ et modifier mon code
 Corrections et préventions de bugs
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Supprimer les « flèches fantômes » (qui n'apparaissent désormais plus à l'écran car l'exception est gérée)
+(À faire côté backend)
 
-Reprogrammer le déclenchement du contrôle des z (actuellement avec zJustChanged).
-Il faudrait peut-être créer un state différent de tilesCoords pour z.
 Ajouter une fonctionnalité automatique de reset z-order quand une erreur est trouvée.
 
 Examiner à nouveau mon useEffect() avec openedMenu dans Tile.tsx
@@ -65,9 +64,7 @@ Gérer le reset des z-values côté backend.
 
 Améliorations graphiques
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Logo
-
-Lorsqu'une nouvelle flèche est placée, elle pointe initialement vers la valeur initiale de arrowTip, non actualisée. Cela cesse lorsque la souris bouge. J'ai trouvé que cela venait d'un dysfonctionnement de l'événement mousemove, qui donne de mauvaises propriétés clientX/Y et target à chaque clic.
+Nouveau logo
 
 Mettre une plus jolie icône de suppression : https://iconscout.com/icon/delete-736
 
@@ -80,7 +77,7 @@ Ajuster la position de TileMenu en fonction de la place sur l'écran
 Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
 
 Utiliser SASS pour pouvoir faire des choses comme ça :
-$main-color: #384048;/* Voir SASS (SCSS) pour utiliser ça.
+$main-color: #384048;
 
 
 Améliorations de l'expérience utilisateur
@@ -89,9 +86,7 @@ Nouvelle tuile centrée et pas coin haut-gauche
 
 ECHAP pour quitter le mode texte
 
-Clic droit pour quitter le mode flèche
-
-Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier. Ou bien, lui permettre de cliquer mais ça ne change rien.
+Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier.
 
 
 Fonctionnalités futures
