@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, forwardRef } from 'react';
 import TileMenuComponent from './TileMenu';
 
-const TileComponent = forwardRef(({ tile, deleteTile, startDragging, updateTruthValue, updateText, arrowMode, setArrowMode }: any, ref: any) => {
+const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, updateTruthValue, updateText, arrowMode, setArrowMode }: any, ref: any) => {
 
   const [readonly, setReadonly] = useState(true);
     // state used for edition mode
@@ -80,8 +80,8 @@ const TileComponent = forwardRef(({ tile, deleteTile, startDragging, updateTruth
 
         className = {"TileMenu"}
         style = {{
-          left: tile.x+1920,
-          top: tile.y+1080-50,
+          left: tile.x + origin[0],
+          top: tile.y + origin[1]-50,
           position: "absolute",
           zIndex: tile.z+1,
         }}
@@ -96,8 +96,8 @@ const TileComponent = forwardRef(({ tile, deleteTile, startDragging, updateTruth
                              + (arrowMode ? " ArrowMode" : "")
                              + (readonly ? "" : " Edition")}
         style = {{
-          left: tile.x+1920, //TODO utiliser initialBoardPosition (et pareil dans Arrow.js)
-          top: tile.y+1080,
+          left: tile.x + origin[0],
+          top: tile.y + origin[1],
           zIndex: tile.z,
         }}
 

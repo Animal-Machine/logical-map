@@ -26,12 +26,6 @@ export interface Arrow {
   id: number;
 }
 
-export interface ArrowCoords {
-  coords: DoubleCoords;
-  highlight: boolean;
-  id: number;
-}
-
 export interface Point {
   x: number; y: number;
 }
@@ -41,3 +35,22 @@ export interface Rectangle {
 }
 
 export type DoubleCoords = [number, number, number, number];
+
+export interface ArrowCoords {
+  coords: DoubleCoords;
+  highlight: boolean;
+  id: number;
+}
+
+export type Coords = [number, number];
+
+export type CoordsOrArray = Coords | CoordsOrArray[];
+
+export function isCoords(array: CoordsOrArray): array is Coords {
+  return (array.length === 2 && typeof array[0] === "number" && typeof array[1] === "number");
+}
+
+type recursiveNumber = number | recursiveNumber[];
+let a: recursiveNumber = [1, 2, 3];
+let b: recursiveNumber = 3;
+let c: recursiveNumber = [1, 2, [3, 4]];

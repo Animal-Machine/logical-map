@@ -1,4 +1,5 @@
-import { Point, Rectangle, DoubleCoords } from '../types';
+import { Point, Rectangle, Coords, DoubleCoords, CoordsOrArray, isCoords } from '../types';
+
 
 //export function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: Point | Rectangle): DoubleCoords {
   // I can't find how to do that with TypeScript… TODO find another elegant way
@@ -16,6 +17,7 @@ export function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h
 
   return [x, y, X, Y];
 }
+
 
 export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
 // Draws a double arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
@@ -43,6 +45,86 @@ export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 
   ctx.lineTo(x3+2*c, y3-2*c);
 }
 
+
+export function drawSimpleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
+// Draws a simple arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
+
+  // Shaft
+  let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
+  console.log(x1, x3, y1, y2, y3);
+  drawAcyclicGraph(ctx, [[x1, y1], [x1, y2], [x3, y2], [x3, y3]]);
+
+  // Tip
+  let w = 8; // width of the arrow tip
+  w = y1<y3 ? w : -w;
+  ctx.moveTo(x3-2*w, y3-2*w);
+  ctx.lineTo(x3, y3);
+  ctx.lineTo(x3+2*w, y3-2*w);
+
+}
+
+
+export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: CoordsOrArray[]) {
+// Draws an acyclic graph, from an array that contains the coordinates of each vertice, arranged in a particalar manner described in the comments below.
+
+  function traceChain(V: CoordsOrArray[]) {
+  /* The parameter is a "chain array", it represents coords linked together in a chain,
+   * and each coord can be followed by another type of array that represents a branching.
+   * For example:
+   * [A, B, [C, D], E]
+   * represents
+   * A──B──E
+   *    │
+   *    C──D
+   */
+    try {
+      if (!isCoords(V[0])) {
+        throw new Error("Wrong format. The first element of a chain must be of type Coords.");
+      }
+      ctx.moveTo(...V[0]);
+      let j = 0; // index of the last Coords element
+      for (let i = 1; i < V.length; i++) {
+        if (isCoords(V[i])) {
+          ctx.lineTo(...V[i] as Coords);
+          j = i;
+        } else {
+          traceBranching(V[j] as Coords, V[i] as CoordsOrArray[]);
+          ctx.moveTo(...V[j] as Coords);
+        }
+      }
+    } catch (err) { console.error("While parsing graph array:", err); }
+  }
+
+  function traceBranching(v0: Coords, V: CoordsOrArray[]) {
+  /* The parameter v0 represents the vertice at a branching,
+   * which is linked with all elements of V, the "branching array".
+   * The elements of V can be other coords, or chain arrays.
+   * For example:
+   * A, [[B, C], D, E]
+   * represents
+   * A──B──C
+   * │╲
+   * D E
+   */
+    for (let v of V) {
+      ctx.moveTo(...v0);
+      if (isCoords(v)) {
+        ctx.lineTo(...v);
+      } else {
+        if (!isCoords(v[0])) {
+          throw new Error("Wrong format. The first element of a chain must be of type Coords.");
+        }
+        ctx.lineTo(...v[0]);
+        traceChain(v);
+      }
+    }
+  }
+
+  traceChain(vertices);
+
+}
+
+
 export function getArrowHitbox([ x1, y1, x3, y3 ]: DoubleCoords): [DoubleCoords, DoubleCoords, DoubleCoords] {
 
   let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
@@ -56,6 +138,7 @@ export function getArrowHitbox([ x1, y1, x3, y3 ]: DoubleCoords): [DoubleCoords,
   return [rect1, rect2, rect3];
 
 }
+
 
 export function getButtonBox([ x1, y1, x3, y3 ]: DoubleCoords) {
   let bs = 44; // button size

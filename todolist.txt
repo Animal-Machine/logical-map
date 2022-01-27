@@ -8,9 +8,11 @@ Flèche NOT
 Flèche AND
 Flèche OR
 
-Calcul déductif
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Ajouter la fonctionnalité
+Board
+¯¯¯¯¯
+Permettre de zoomer et de dézoomer
+Empêcher d'en sortir
+L'agrandir lorsque l'utilisateur arrive au bord
 
 Base de données
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -18,11 +20,9 @@ Changer le backend
 "Undo" button
 Import / export
 
-Board
-¯¯¯¯¯
-Permettre de zoomer et de dézoomer
-Empêcher d'en sortir
-L'agrandir lorsque l'utilisateur arrive au bord
+Calcul déductif
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Ajouter la fonctionnalité
 
 
 
@@ -86,7 +86,7 @@ Nouvelle tuile centrée et pas coin haut-gauche
 
 ECHAP pour quitter le mode texte
 
-Les tuiles déjà reliées par une flèche ne sont pas mises en surbrillance, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier.
+Les tuiles déjà reliées par une flèche sont grisées dans le mode de positionnement de flèche, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier.
 
 
 Fonctionnalités futures

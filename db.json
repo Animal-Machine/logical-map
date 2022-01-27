@@ -1,40 +1,4 @@
 {
-  "arrows": [
-    {
-      "from": 1,
-      "to": 2,
-      "id": 1
-    },
-    {
-      "from": 3,
-      "to": 2,
-      "id": 2
-    }
-  ],
-  "tiles": [
-    {
-      "text": "Socrate est un Homme.",
-      "truthValue": false,
-      "x": 129,
-      "y": 529,
-      "z": 2,
-      "id": 1
-    },
-    {
-      "text": "Socrate est mortel.",
-      "truthValue": true,
-      "x": 330,
-      "y": 284,
-      "z": 3,
-      "id": 2
-    },
-    {
-      "text": "Tous les Hommes sont mortels.",
-      "truthValue": null,
-      "x": 27,
-      "y": 132,
-      "z": 1,
-      "id": 3
-    }
-  ]
+  "arrows": [],
+  "tiles": []
 }

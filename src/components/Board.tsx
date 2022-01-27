@@ -1,23 +1,57 @@
 import { useState, useEffect, useRef } from 'react';
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
-import { calculateArrowEnds, drawDoubleArrow } from './arrowFunctions';
-import { TileData, TileContent, TileXY, TileZ, Arrow, ArrowCoords, Point, Rectangle } from '../types';
+import { calculateArrowEnds, drawSimpleArrow, drawAcyclicGraph } from './arrowFunctions';
+import { TileData, TileContent, TileXY, TileZ, Arrow, Point, Rectangle, ArrowCoords, Coords, CoordsOrArray } from '../types';
 
 function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateTileTruthValue, updateTileText, tilesContent, tilesXY, setTilesXY, tilesZ, setTilesZ, zMax, setZMax, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
+
+
+  function testComplexArrow(ctx: CanvasRenderingContext2D) {
+  // temporary test function
+
+    let vertices: CoordsOrArray[] = [[200, 200], [[[200, 10], [10, 10]], [[10, 200], [[10, 105], [10, 295]]]], [400, 200]];
+
+    // As I manually write the coordinates to test my functions,
+    // I need an easy way to shift coordinates according to the origin
+    // to avoid doing the addition all the time.
+    // So I temporary overwrite the two following methods:
+    const ctxMoveTo = ctx.moveTo;
+    const ctxLineTo = ctx.lineTo;
+
+    function shiftCoords(coords: Coords): Coords {
+      return [coords[0] + origin[0], coords[1] + origin[1] + 100];
+    }
+    ctx.moveTo = function(...coords: Coords): void {
+      ctxMoveTo.call(this, ...shiftCoords(coords));
+    } // Note: an arrow function would change the meaning of "this"
+    ctx.lineTo = function(...coords: Coords): void {
+      ctxLineTo.call(this, ...shiftCoords(coords));
+    }
+
+    drawAcyclicGraph(ctx, vertices);
+
+    // Set back the methods to their original state which I need in the rest of my code
+    // (also prevents an "InternalError: too much recursion"):
+    ctx.moveTo = ctxMoveTo;
+    ctx.lineTo = ctxLineTo;
+  }
 
  
   // Board State
 
-  const initialBoardPosition = [-1920, -1080];
-  const initialBoardSize = [3840, 2160];
+  const initialBoardCoords = {
+    x: -1920,
+    y: -1080,
+    w: 3840,
+    h: 2160,
+  };
 
-  const [board, setBoard] = useState({
-    x: initialBoardPosition[0],
-    y: initialBoardPosition[1],
-    w: initialBoardSize[0],
-    h: initialBoardSize[1],
-  });
+  const [board, setBoard] = useState(initialBoardCoords);
+
+  const [origin, setOrigin] = useState([-initialBoardCoords.x, -initialBoardCoords.y]);
+    // I want 0, 0 to be at the center of my board.
+    // These "origin" coordinates are therefore added to all tiles coordinates.
 
 
   // Dragging
@@ -135,8 +169,8 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
     addTile({
       text: '',
       truthValue: null,
-      x: mouseX - board.x + initialBoardPosition[0],
-      y: mouseY - board.y + initialBoardPosition[1],
+      x: mouseX - board.x - origin[0],
+      y: mouseY - board.y - origin[1],
     });
   }
 
@@ -240,10 +274,11 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
       ctx.clearRect(0, 0, board.w, board.h);
       ctx.strokeStyle = 'white';
       ctx.beginPath();
+      testComplexArrow(ctx);
       for (let i in arrowsCoords) {
         if (arrowsCoords[i].coords) {
-          drawDoubleArrow(ctx, arrowsCoords[i].coords)
-          if (arrowsCoords[i].highlight) {drawDoubleArrow(ctx, arrowsCoords[i].coords)}
+          drawSimpleArrow(ctx, arrowsCoords[i].coords)
+          if (arrowsCoords[i].highlight) {drawSimpleArrow(ctx, arrowsCoords[i].coords)}
         }
       }
       if (typeof arrowMode === "number" && mouseTarget) {
@@ -251,7 +286,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
         // the event handler updateMousePosition has just been placed and didn't run,
         // so mousePosition and mouseTarget have their default value
         let tileFrom = tileRefs[arrowMode-1];
-        drawDoubleArrow(ctx, calculateArrowEnds(
+        drawSimpleArrow(ctx, calculateArrowEnds(
           {
             x: tileFrom.offsetLeft,
             y: tileFrom.offsetTop,
@@ -334,6 +369,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
         <TileComponent
           key={tile.id}
           ref={saveTileRef(tile.id-1)} // I don't know how useRef() usually works but ref={tileRefs[tileContent.id-1]} doesn't.
+          origin={origin}
           tile={tile}
           deleteTile={deleteTile}
           startDragging={startDraggingTile}
