@@ -1,20 +1,42 @@
-import { useState, useEffect, useRef, forwardRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, MouseEvent } from 'react';
 import TileMenuComponent from './TileMenu';
+import { TileSelection } from '../types';
 
-const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, updateTruthValue, updateText, arrowMode, setArrowMode }: any, ref: any) => {
 
-  const [readonly, setReadonly] = useState(true);
+const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, updateTruthValue, updateText, modeState, setModeState, tileSelection, setTileSelection, addArrow }: any, ref: any) => {
+
+
+  // Tile behaviour depending on mode
+
+  const [readOnly, setReadOnly] = useState(true);
     // state used for edition mode
 
-  function onMouseDown(e: any) {
-    if (arrowMode) {
-      // In arrow mode, place arrow:
-      if (arrowMode === true) {
-        setArrowMode(tile.id);
-      }
-    } else {
-      // Drag tile only with left button:
-      e.button===0 && readonly && startDragging(tile.id, e.clientX, e.clientY);
+  function onMouseDown(e: MouseEvent) {
+    switch(modeState) {
+
+      case 'singleArrow':
+        if (!tileSelection.tilesFrom.length) {
+          setTileSelection({tilesFrom: [tile.id], tilesTo: []});
+        } else if (tile.id !== tileSelection.tilesFrom[0]) {
+          addArrow(tileSelection.tilesFrom[0], tile.id); // also sets modeState and tileSelection to their default value
+        }
+        break;
+
+      case 'branchedArrow1':
+        if (!tileSelection.tilesFrom.includes(tile.id)) {
+          setTileSelection((tileSelection: TileSelection) => ({tilesFrom: [...tileSelection.tilesFrom, tile.id], tilesTo: []}));
+        }
+        break;
+
+      case 'branchedArrow2':
+        if (!tileSelection.tilesFrom.concat(tileSelection.tilesTo).includes(tile.id)) {
+          setTileSelection((tileSelection: TileSelection) => ({tilesFrom: tileSelection.tilesFrom, tilesTo: [...tileSelection.tilesTo!, tile.id]}));
+        }
+        break;
+
+      default:
+        // Drag tile only with left button:
+        e.button===0 && readOnly && startDragging(tile.id, e.clientX, e.clientY);
     }
   }
 
@@ -51,13 +73,6 @@ const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, upd
     clearTimeout(autoCloseTimerIdRef.current);
   }
 
-  //TODO USEFUL à réexaminer. Jusqu'à l'ajout de Typescript qui m'a donné une erreur, j'avais écrit ceci :
-  //useEffect((openedMenu) => {
-  // Pour quelle raison ai-je mis openedMenu en paramètre ?
-  // Et quand je mettais :
-  //useEffect((openedMenu, closeMenu) => {
-  // Il y avait un warning qui disparaissait. (Désormais impossible avec Typescript)
-  // Par ailleurs, il y a peut-être des conclusions à tirer de ce que j'ai appris sur trackmouse (voir help.js)
   useEffect(() => {
     return () => {
       window.removeEventListener('mousedown', closeMenu);
@@ -93,8 +108,8 @@ const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, upd
       <textarea
         ref = {ref}
         className = {"Tile" + (tile.truthValue ? " True" : (tile.truthValue===false?" False":""))
-                             + (arrowMode ? " ArrowMode" : "")
-                             + (readonly ? "" : " Edition")}
+                             + (modeState!=='default' ? " ArrowMode" : "")
+                             + (readOnly ? "" : " Edition")}
         style = {{
           left: tile.x + origin[0],
           top: tile.y + origin[1],
@@ -106,14 +121,15 @@ const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, upd
 
         // Open tile menu (if not in arrow mode):
         onContextMenu = {() => {
-          if (!arrowMode) {openMenu()}
+          if (modeState === 'default') {openMenu()}
         }}
 
         // Enter text edition mode (overrides arrow mode):
         onDoubleClick = {e => {
           e.stopPropagation();
-          setReadonly(false);
-          setArrowMode(false);
+          setReadOnly(false);
+          setModeState('default');
+          setTileSelection(new TileSelection());
         }}
 
         // Update state when user writes text:
@@ -121,7 +137,7 @@ const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, upd
 
         // Quit text edition mode:
         onBlur = {e => {
-          setReadonly(true);
+          setReadOnly(true);
           // Ensure that text is unselected
           // to avoid drag problem:
           e.target.selectionStart = 0;
@@ -129,7 +145,7 @@ const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, upd
         }}
 
         spellCheck = "false"
-        readOnly = {readonly}
+        readOnly = {readOnly}
         value = {tile.text}
       > </textarea>
     </>

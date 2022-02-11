@@ -1,24 +1,20 @@
-import { Point, Rectangle, PointOrRectangle, Coords, isCoords, DoubleCoords, isDoubleCoords, CoordsOrArray } from '../types';
+import { Point, Rectangle, PointOrRectangle, Coords, isCoords, DoubleCoords, isDoubleCoords, CoordsOrArray } from '../coordTypes';
 
 
-function tileSum(previous: Coords, current: Rectangle): Coords {
-  return [previous[0] + current.x, previous[1] + current.y];
-}
 
-export function calculateArrowCoords({tilesFrom, tilesTo, mouse}: {tilesFrom: Rectangle[], tilesTo: Rectangle[], mouse?: Point}): DoubleCoords | CoordsOrArray[] {
+export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle[], tilesTo: Rectangle[]}): DoubleCoords | CoordsOrArray[] {
+
+  function tileSum(previous: Coords, current: Rectangle): Coords {
+    return [previous[0] + current.x, previous[1] + current.y];
+  }
   let coords: DoubleCoords | CoordsOrArray[];
 
-  if (tilesFrom.length === 1 && tilesTo.length <= 1) {
-    if (tilesTo.length === 1) {
-      coords = calculateArrowEnds(tilesFrom[0], tilesTo[0]);
-    }
-    else if (mouse) {
-      coords = calculateArrowEnds(tilesFrom[0], mouse);
-    }
-    else {
-      throw new Error("Arrow is expected to point somewhere.");
-      coords = [0, 0, 0, 0];
-    }
+  if (tilesFrom.length === 1 && tilesTo.length === 1) {
+    coords = calculateArrowEnds(tilesFrom[0], tilesTo[0]);
+  }
+  else if (tilesFrom.length === 0 && tilesTo.length > 0) {
+    throw new Error("The arrow must start from somewhere.");
+    coords = [0, 0, 0, 0];
   }
   else {
     // la moyenne des coordonnées des tilesFrom
@@ -27,30 +23,17 @@ export function calculateArrowCoords({tilesFrom, tilesTo, mouse}: {tilesFrom: Re
     tFromMean[1] /= tilesFrom.length;
     let tFromCoords = tilesFrom.map((t: Rectangle): Coords => [t.x, t.y]);
 
-    if (tilesTo.length > 0) {
-      // la moyenne des coordonnées des tilesTo
-      let tToMean = tilesTo.reduce(tileSum, [0, 0]);
-      tToMean[0] /= tilesTo.length;
-      tToMean[1] /= tilesTo.length;
-      let tToCoords = tilesTo.map((t: Rectangle): Coords => [t.x, t.y]);
-
-      if (mouse) {
-       tToCoords.push([mouse.x, mouse.y]);
-      }
-      coords = [tFromMean, tFromCoords, tToMean, tToCoords];
-    }
-    else if (!mouse) {
-      throw new Error("Arrow is expected to point somewhere.");
-      coords = [0, 0, 0, 0];
-    }
-    else {
-      coords = [tFromMean, tFromCoords, [mouse.x, mouse.y]];
-    }
+    // la moyenne des coordonnées des tilesTo
+    let tToMean = tilesTo.reduce(tileSum, [0, 0]);
+    tToMean[0] /= tilesTo.length;
+    tToMean[1] /= tilesTo.length;
+    let tToCoords = tilesTo.map((t: Rectangle): Coords => [t.x, t.y]);
+    coords = [tFromMean, tFromCoords, tToMean, tToCoords];
   }
   return coords;
 }
 
-//function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: { x: number, y: number, w: number|undefined, h: number|undefined}): DoubleCoords {
+
 function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: PointOrRectangle): DoubleCoords {
 // the first argument represents a tile position and dimensions,
 // the second one represents either another tile or the mouse pointer position
@@ -97,6 +80,7 @@ function drawSimpleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: Doub
   ctx.lineTo(x3, y3);
   ctx.lineTo(x3+2*w, y3-2*w);
 }
+
 
 
 export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: CoordsOrArray[]) {
@@ -161,6 +145,8 @@ export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: Coords
 
 
 
+// Unused for now:
+
 export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
 // Draws a double arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
 
@@ -186,6 +172,7 @@ export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 
   ctx.lineTo(x3, y3);
   ctx.lineTo(x3+2*c, y3-2*c);
 }
+
 
 
 export function getArrowHitbox([ x1, y1, x3, y3 ]: DoubleCoords): [DoubleCoords, DoubleCoords, DoubleCoords] {

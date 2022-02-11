@@ -2,40 +2,34 @@ import { useState, useEffect, useRef } from 'react';
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
 import { calculateArrowCoords, drawArrow, drawAcyclicGraph } from './arrowFunctions';
-import { TileData, TileContent, TileXY, TileZ, Arrow, Point, Rectangle, ArrowCoords, Coords, DoubleCoords, CoordsOrArray } from '../types';
+import { TileData, TileContent, TileXY, TileZ, Arrow, Mode, TileSelection } from '../types';
+import { Point, Rectangle, ArrowCoords, Coords, DoubleCoords, CoordsOrArray } from '../coordTypes';
 
-function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateTileTruthValue, updateTileText, tilesContent, tilesXY, setTilesXY, tilesZ, setTilesZ, zMax, setZMax, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
+//function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateTileTruthValue, updateTileText, tilesContent, tilesXY, setTilesXY, tilesZ, setTilesZ, zMax, setZMax, arrows, setArrows, modeState, setModeState, tileSelection, setTileSelection, addArrow, deleteArrow }: any) {
+function BoardComponent(props: any) {
 
+  const addTile = props.addTile;
+  const deleteTile = props.deleteTile;
+  const patchTile = props.patchTile;
+  const mergeTileData = props.mergeTileData;
+  const updateTileTruthValue = props.updateTileTruthValue;
+  const updateTileText = props.updateTileText;
+  const tilesContent = props.tilesContent;
+  const tilesXY = props.tilesXY;
+  const setTilesXY = props.setTilesXY;
+  const tilesZ = props.tilesZ;
+  const setTilesZ = props.setTilesZ;
+  const zMax = props.zMax;
+  const setZMax = props.setZMax;
+  const arrows = props.arrows;
+  const setArrows = props.setArrows;
+  const modeState: Mode = props.modeState;
+  const setModeState: (m: Mode) => Mode = props.setModeState;
+  const tileSelection: TileSelection = props.tileSelection;
+  const setTileSelection: (ts: TileSelection) => TileSelection = props.setTileSelection;
+  const addArrow = props.addArrow;
+  const deleteArrow = props.deleteArrow;
 
-  function testComplexArrow(ctx: CanvasRenderingContext2D) {
-  // temporary test function
-
-    let vertices: CoordsOrArray[] = [[200, 200], [[[200, 10], [10, 10]], [[10, 200], [[10, 105], [10, 295]]]], [400, 200]];
-
-    // As I manually write the coordinates to test my functions,
-    // I need an easy way to shift coordinates according to the origin
-    // to avoid doing the addition all the time.
-    // So I temporary overwrite the two following methods:
-    const ctxMoveTo = ctx.moveTo;
-    const ctxLineTo = ctx.lineTo;
-
-    function shiftCoords(coords: Coords): Coords {
-      return [coords[0] + origin[0], coords[1] + origin[1] + 100];
-    }
-    ctx.moveTo = function(...coords: Coords): void {
-      ctxMoveTo.call(this, ...shiftCoords(coords));
-    } // Note: an arrow function would change the meaning of "this"
-    ctx.lineTo = function(...coords: Coords): void {
-      ctxLineTo.call(this, ...shiftCoords(coords));
-    }
-
-    drawAcyclicGraph(ctx, vertices);
-
-    // Set back the methods to their original state which I need in the rest of my code
-    // (also prevents an "InternalError: too much recursion"):
-    ctx.moveTo = ctxMoveTo;
-    ctx.lineTo = ctxLineTo;
-  }
 
  
   // Board State
@@ -176,7 +170,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
 
 
 
-  // Arrows drawing
+  //// Arrows drawing
 
 
   interface TextAreaDictionary {
@@ -185,6 +179,17 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
   const tileRefs = useRef<TextAreaDictionary>({}).current;
   const saveTileRef = (key: number) => (r: HTMLTextAreaElement) => { tileRefs[key] = r };
     // references to the DOM elements related to the Tile components
+
+  function tileIdToRectangle(id: number): Rectangle {
+    // returns the coordinates and size of the tile whose ID is given
+    let tRef = tileRefs[id-1];
+    return {
+      x: tRef.offsetLeft,
+      y: tRef.offsetTop,
+      w: tRef.offsetWidth,
+      h: tRef.offsetHeight,
+    };
+  }
 
 
   /// Update arrows coordinates
@@ -199,8 +204,8 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
     setArrowsCoords(arrows.map((a: Arrow) => {
 
       // References to the DOM objects representing the tiles
-      let tilesFromRefs = a.tileFrom.map(t => tileRefs[t-1]);
-      let tilesToRefs = a.tileTo.map(t => tileRefs[t-1]);
+      let tilesFromRefs = a.tilesFrom.map(t => tileRefs[t-1]);
+      let tilesToRefs = a.tilesTo.map(t => tileRefs[t-1]);
 
       let tilesFrom: Rectangle[] = [];
       let tilesTo: Rectangle[] = [];
@@ -244,31 +249,19 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
     let stop = false; // used to stop the loop when re-rendering
     let mousePosition: Point = {x: 0, y: 0};
     let mouseTarget: HTMLElement | null;
+
     const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
     let ctx: CanvasRenderingContext2D | null;
+
     if (canvas) {
-      // canvas is not supported by some browsers
+      // canvas is not supported by some browsers and can be null
       ctx = canvas.getContext('2d');
       if (ctx) {
-        if (arrowMode) {
+        if (modeState !== 'default') {
           window.addEventListener('mousemove', updateMousePosition);
             // window, NOT canvas: else the target will always be the canvas
-          if (arrowMode !== true) {
-            // see state declaration to understand arrowMode
-            window.addEventListener('click', onClickPlaceArrow);
-          }
         }
         loop(ctx);
-      }
-    }
-
-    function onClickPlaceArrow(e: any) {
-    // function to place the arrow and exit arrow mode if the user clicks on a tile
-      if (e.target.tagName === "TEXTAREA") {
-        const targetTileId = parseInt(Object.keys(tileRefs).filter((key: any) => (tileRefs[key] === e.target))[0]) + 1;
-        if (targetTileId !== arrowMode) {
-          addArrow(arrowMode, targetTileId); // also sets arrowMode to false
-        }
       }
     }
 
@@ -284,26 +277,27 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
       ctx.clearRect(0, 0, board.w, board.h);
       ctx.strokeStyle = 'white';
       ctx.beginPath();
-      testComplexArrow(ctx);
       for (let i in arrowsCoords) {
         if (arrowsCoords[i].coords) {
           drawArrow(ctx, arrowsCoords[i].coords)
           if (arrowsCoords[i].highlight) {drawArrow(ctx, arrowsCoords[i].coords)}
         }
       }
-      if (typeof arrowMode === "number" && mouseTarget) {
-        // mouseTarget is important here because when arrowMode just changed,
+      if (['singleArrow', 'branchedArrow1', 'branchedArrow2'].includes(modeState) && tileSelection.tilesFrom.length > 0 && mouseTarget) {
+        // mouseTarget is important here because when tileSelection just changed,
         // the event handler updateMousePosition has just been placed and didn't run,
-        // so mousePosition and mouseTarget have their default value
-        let tileFrom = tileRefs[arrowMode-1];
+        // so mousePosition and mouseTarget have their default value. So it's better
+        // not to draw the arrow being placed.
+        let tFrom = tileSelection.tilesFrom.map(tileIdToRectangle);
+        let tTo = tileSelection.tilesTo.map(tileIdToRectangle);
+        if (modeState === 'branchedArrow1') {
+          tFrom.push(getArrowTip());
+        } else {
+          tTo.push(getArrowTip());
+        }
         drawArrow(ctx, calculateArrowCoords({
-          tilesFrom: [{
-            x: tileFrom.offsetLeft,
-            y: tileFrom.offsetTop,
-            w: tileFrom.offsetWidth,
-            h: tileFrom.offsetHeight,
-          }],
-          ...getArrowTip(),
+          tilesFrom: tFrom,
+          tilesTo: tTo,
         }));
       }
       ctx.stroke();
@@ -312,38 +306,36 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
       else { window.requestAnimationFrame(() => loop(ctx)); }
     }
 
-    function getArrowTip(): {mouse?: Point, tilesTo: Rectangle[]} {
+    function getArrowTip(): Rectangle {
       // function giving the arrow tip, active when the user must choose a second tile
-      let arrowTip: {mouse?: Point, tilesTo: Rectangle[]} = {tilesTo: []};
-      if (Object.keys(tileRefs).filter((key: any) => (tileRefs[key] === mouseTarget)).length === 0)
+      let arrowTip = new Rectangle();
+      if (Object.keys(tileRefs).filter((key: any) => (tileRefs[key] === mouseTarget)).length === 0) {
         // if no tile is targeted, arrowTip takes the mouse coordinates:
-      {
-        arrowTip.mouse = {
-          x: mousePosition.x - board.x,
-          y: mousePosition.y - board.y,
-        };
+        arrowTip.x = mousePosition.x - board.x;
+        arrowTip.y = mousePosition.y - board.y;
       } else if (mouseTarget) {
         // if there is one, arrowTip takes its coordinates, width and height
-        arrowTip.tilesTo = [{
+        arrowTip = {
           x: mouseTarget.offsetLeft,
           y: mouseTarget.offsetTop,
           w: mouseTarget.offsetWidth,
           h: mouseTarget.offsetHeight,
-        }];
+        };
+      }
+      else {
+        throw new Error("Arrow seems to point nowhere.");
+        arrowTip = {x:0, y:0, w:0, h:0};
       }
       return arrowTip;
     }
 
     return () => {
       stop = true;
-      if (arrowMode && canvas) {
+      if (modeState !== 'default' && canvas) {
         window.removeEventListener('mousemove', updateMousePosition);
-        if (arrowMode !== true) {
-          window.removeEventListener('click', onClickPlaceArrow);
-        }
       }
     };
-  }, [arrowsCoords, arrowMode, board]);
+  }, [arrowsCoords, modeState, tileSelection, board]);
 
 
   // Highlight arrow when cursor is on it
@@ -353,15 +345,14 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
   }
 
 
-  // Render
 
   return (
     <div
-      className = {"Board" + (arrowMode ? " ArrowMode" : "")}
+      className = {"Board" + (modeState !== 'default' ? " ArrowMode" : "")}
       style = {{ left:board.x, top:board.y, width:board.w, height:board.h }}
       onMouseDown = {e => startDraggingBoard(e)}
       onDoubleClick = {e => {
-        if (!arrowMode) {addEmptyTile(e.clientX, e.clientY)}
+        if (modeState === 'default') {addEmptyTile(e.clientX, e.clientY)}
       }}
     >
       <canvas width={board.w} height={board.h}>{/*Insérer des éléments pour remplacer les flèches*/}</canvas>
@@ -383,8 +374,11 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
           startDragging={startDraggingTile}
           updateTruthValue={updateTileTruthValue}
           updateText={updateTileText}
-          arrowMode={arrowMode}
-          setArrowMode={setArrowMode}
+          modeState={modeState}
+          setModeState={setModeState}
+          tileSelection={tileSelection}
+          setTileSelection={setTileSelection}
+          addArrow={addArrow}
         />
       )}
     </div>

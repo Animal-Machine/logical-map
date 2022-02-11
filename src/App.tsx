@@ -2,27 +2,113 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import BoardComponent from './components/Board';
 import AppHeaderComponent from './components/AppHeader';
-import { Address, TileData, TileContent, TileXY, TileZ, Operator, Arrow } from './types';
+import { Address, TileData, TileContent, TileXY, TileZ, Operator, Arrow, Mode, TileSelection } from './types';
+
 
 function App() {
 
 
+  // Arrow modes
+
+  const [modeState, setModeState] = useState<Mode>("default");
+    // takes the value "singleArrow" or "branchedaArrow1/2" when the user is placing an arrow
+
+  const [tileSelection, setTileSelection] = useState<TileSelection>(new TileSelection());
+    // retains the ids of the tiles between which an arrow is currently being placed
+
+
   useEffect(() => {
+    // response to user input depending on current mode
+
     const preventDef = (e: MouseEvent) => e.preventDefault();
+
     const keydown = (e: KeyboardEvent) => {
-      if (e.code === "Escape") {
-        setArrowMode(false);
+      switch(e.code) {
+
+        case 'Escape':
+          // Exit current mode
+          setModeState('default');
+          setTileSelection(new TileSelection());
+          break;
+
+        case 'Enter':
+          // Finalize arrow placement
+          if (modeState === 'branchedArrow1' && tileSelection.tilesFrom.length > 0) {
+            setModeState('branchedArrow2');
+          }
+          else if (modeState === 'branchedArrow2' && tileSelection.tilesTo.length > 0) {
+            addArrow(tileSelection.tilesFrom, tileSelection.tilesTo, '', ''); // also sets modeState and tileSelection to their default value
+          }
+          break;
+
+        case 'Backspace':
+          goBack();
+          break;
       }
     }
+
+    const goBack = () => {
+      // Allows the user to unselect the previous tile
+      // or exit arrow mode with a right click
+      switch(modeState) {
+
+        case 'singleArrow':
+          switch(tileSelection.tilesFrom.length) {
+            case 0:
+              setModeState('default');
+              break;
+            case 1:
+              setTileSelection(new TileSelection());
+              break;
+            default:
+              throw new Error("In single arrow mode, there can be only one selected tile.");
+          }
+          break;
+
+        case 'branchedArrow1':
+          if (!tileSelection.tilesFrom.length) {
+            setModeState('default');
+          } else {
+            setTileSelection(tileSelection => ({tilesFrom: tileSelection.tilesFrom.slice(0,-1), tilesTo: []}));
+          }
+          break;
+
+        case 'branchedArrow2':
+          if (tileSelection.tilesTo.length === 0) {
+            setModeState('branchedArrow1');
+          } else {
+            setTileSelection(tileSelection => ({...tileSelection, tilesTo: tileSelection.tilesTo.slice(0,-1)}));
+          }
+          break;
+      }
+    }
+
+
     // On Mount:
     window.addEventListener('contextmenu', preventDef);
+    window.addEventListener('contextmenu', goBack);
     window.addEventListener('keydown', keydown);
+
     return () => {
       // On Unmount:
       window.removeEventListener('contextmenu', preventDef);
+      window.removeEventListener('contextmenu', goBack);
       window.removeEventListener('keydown', keydown);
     }
-  }, [])
+
+  }, [modeState, tileSelection])
+
+
+  function changeModeState(newMode: Mode) {
+    setModeState((currentMode: Mode) => {
+      if (currentMode === newMode) {
+        return 'default';
+      }
+      else { return newMode; }
+    });
+    setTileSelection(new TileSelection());
+  }
+
 
 
   // Custom fetch functions
@@ -66,7 +152,7 @@ function App() {
     // contains the highest z coordinate, used when putting a tile to the foreground
 
   const [arrows, setArrows] = useState<Arrow[]>([]);
-    // contains the properties "tileFrom", "tileTo" (ids of the linked tiles) and "id"
+    // contains the properties "tilesFrom", "tilesTo" (ids of the linked tiles) and "id"
 
 
   // Loading tiles and arrows on page
@@ -173,7 +259,7 @@ function App() {
       let arrowList: number[] = [];
       for (let i = 0; i < arrows.length; i++) {
         let a = arrows[i];
-        if (a.tileFrom.includes(id) || a.tileTo.includes(id)) {
+        if (a.tilesFrom.includes(id) || a.tilesTo.includes(id)) {
           await fetch(`${myServerAddress}arrows/${a.id}`, {method: 'DELETE',});
           arrowList.push(a.id);
         }
@@ -217,53 +303,23 @@ function App() {
   }
 
 
-  // Arrow Mode
-
-  const [arrowMode, setArrowMode] = useState(false);
-    // This state is set to false when not in arrow mode,
-    // set to true when in arrow mode without any tile selected,
-    // and set to an integer which is the tile id when a first tile
-    // has been clicked on. When a second tile is selected,
-    // the arrow is created and the arrow mode is exited.
- 
-  useEffect(() => {
-    const goBack = (e: MouseEvent) => {
-      // Allows the user to unselect the first tile
-      // or exit arrow mode with a right click
-      if (typeof arrowMode === "number") {
-        setArrowMode(true);
-      } else { setArrowMode(false); }
-    }
-
-    window.addEventListener('contextmenu', goBack);
-    return () => {
-      window.removeEventListener('contextmenu', goBack);
-    }
-  }, [arrowMode])
-
-  function switchArrowMode() {
-    setArrowMode(m => !m);
-  }
-
-
   // Add and delete arrows
 
-  function addSimpleArrow(a: number, b: number) {
-    addArrow(a, b, '', '');
-  }
-
-  function addArrow(a: number, b: number, operator1: Operator, operator2: Operator) {
-    if (arrows.filter(arrow => (arrow.tileFrom===[a] && arrow.tileTo===[b])).length === 0) {
+  function addArrow(a: number | number[], b: number | number[], operator1: Operator = '', operator2: Operator = '') {
+    if (typeof a === 'number') { a = [a]; }
+    if (typeof b === 'number') { b = [b]; }
+    if (arrows.filter(arrow => (arrow.tilesFrom===a && arrow.tilesTo===b)).length === 0) {
       let newArrow = {
-        tileFrom: [a],
-        tileTo: [b],
+        tilesFrom: a,
+        tilesTo: b,
         operator1: operator1,
         operator2: operator2,
       };
       myPost("arrows", newArrow)
         .then(() => myGet("arrows"))
         .then(setArrows)
-        .then(() => setArrowMode(false))
+        .then(() => setModeState('default'))
+        .then(() => setTileSelection(new TileSelection()))
         .catch(e => console.error("While adding new arrow:", e));
     }
   }
@@ -284,7 +340,7 @@ function App() {
         setTiles={setTiles}
         arrows={arrows}
         setArrows={setArrows}
-        switchArrowMode={switchArrowMode}
+        changeModeState={changeModeState}
       />
       <BoardComponent
         addTile={addTile}
@@ -302,8 +358,10 @@ function App() {
         setZMax={setZMax}
         arrows={arrows}
         setArrows={setArrows}
-        arrowMode={arrowMode}
-        setArrowMode={setArrowMode}
+        modeState={modeState}
+        setModeState={setModeState}
+        tileSelection={tileSelection}
+        setTileSelection={setTileSelection}
         addArrow={addArrow}
         deleteArrow={deleteArrow}
       />

@@ -1,4 +1,4 @@
-export default function AppHeaderComponent({ myGet, myPost, setTiles, arrows, setArrows, switchArrowMode }: any) {
+export default function AppHeaderComponent({ myGet, myPost, setTiles, arrows, setArrows, changeModeState }: any) {
 
   function demo() {
     const demoTiles = [
@@ -35,9 +35,14 @@ export default function AppHeaderComponent({ myGet, myPost, setTiles, arrows, se
   return(
     <header className="App-header">
       <button
-        onClick={switchArrowMode}
+        onClick={() => changeModeState('singleArrow')}
       >
         Arrow
+      </button>
+      <button
+        onClick={() => changeModeState('branchedArrow1')}
+      >
+        Branched arrow
       </button>
       <button
         onClick={demo}

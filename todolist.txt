@@ -1,6 +1,17 @@
 Étapes principales
 ––––––––––––––––––
 
+Typescript
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Typer toutes les props
+
+Flèches à branches
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Leur donner une forme carrée
+Ajouter les pointes
+Si une tuile est supprimée, retirer seulement une branche si possible
+Corriger le clignotement en changeant le type de mouseTarget et mousePosition
+
 Types de flèche
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Bouton menu flèche
