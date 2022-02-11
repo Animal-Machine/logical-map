@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
-import { calculateArrowEnds, drawSimpleArrow, drawAcyclicGraph } from './arrowFunctions';
-import { TileData, TileContent, TileXY, TileZ, Arrow, Point, Rectangle, ArrowCoords, Coords, CoordsOrArray } from '../types';
+import { calculateArrowCoords, drawArrow, drawAcyclicGraph } from './arrowFunctions';
+import { TileData, TileContent, TileXY, TileZ, Arrow, Point, Rectangle, ArrowCoords, Coords, DoubleCoords, CoordsOrArray } from '../types';
 
 function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateTileTruthValue, updateTileText, tilesContent, tilesXY, setTilesXY, tilesZ, setTilesZ, zMax, setZMax, arrows, setArrows, arrowMode, setArrowMode, addArrow, deleteArrow }: any) {
 
@@ -179,8 +179,11 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
   // Arrows drawing
 
 
-  const tileRefs: any = useRef({}).current;
-  const saveTileRef: any = (key: any) => (r: any) => { tileRefs[key] = r };
+  interface TextAreaDictionary {
+    [index: number]: HTMLTextAreaElement;
+  }
+  const tileRefs = useRef<TextAreaDictionary>({}).current;
+  const saveTileRef = (key: number) => (r: HTMLTextAreaElement) => { tileRefs[key] = r };
     // references to the DOM elements related to the Tile components
 
 
@@ -196,24 +199,31 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
     setArrowsCoords(arrows.map((a: Arrow) => {
 
       // References to the DOM objects representing the tiles
-      let tileFrom = tileRefs[a.from-1];
-      let tileTo = tileRefs[a.to-1];
+      let tilesFromRefs = a.tileFrom.map(t => tileRefs[t-1]);
+      let tilesToRefs = a.tileTo.map(t => tileRefs[t-1]);
+
+      let tilesFrom: Rectangle[] = [];
+      let tilesTo: Rectangle[] = [];
 
       try {
-        let coords = calculateArrowEnds(
-          {
-            x: tileFrom.offsetLeft,
-            y: tileFrom.offsetTop,
-            w: tileFrom.offsetWidth,
-            h: tileFrom.offsetHeight,
-          },
-          {
-            x: tileTo.offsetLeft,
-            y: tileTo.offsetTop,
-            w: tileTo.offsetWidth,
-            h: tileTo.offsetHeight,
-          }
-        );
+        for (let tRef of tilesFromRefs) {
+          tilesFrom.push({
+            x: tRef.offsetLeft,
+            y: tRef.offsetTop,
+            w: tRef.offsetWidth,
+            h: tRef.offsetHeight,
+          });
+        }
+        for (let tRef of tilesToRefs) {
+          tilesTo.push({
+            x: tRef.offsetLeft,
+            y: tRef.offsetTop,
+            w: tRef.offsetWidth,
+            h: tRef.offsetHeight,
+          });
+        }
+
+        let coords: DoubleCoords | CoordsOrArray[] = calculateArrowCoords({tilesFrom: tilesFrom, tilesTo: tilesTo});
 
         return {id: a.id, coords: coords, highlight: false};
       }
@@ -255,7 +265,7 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
     function onClickPlaceArrow(e: any) {
     // function to place the arrow and exit arrow mode if the user clicks on a tile
       if (e.target.tagName === "TEXTAREA") {
-        const targetTileId = parseInt(Object.keys(tileRefs).filter(key => (tileRefs[key] === e.target))[0]) + 1;
+        const targetTileId = parseInt(Object.keys(tileRefs).filter((key: any) => (tileRefs[key] === e.target))[0]) + 1;
         if (targetTileId !== arrowMode) {
           addArrow(arrowMode, targetTileId); // also sets arrowMode to false
         }
@@ -277,8 +287,8 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
       testComplexArrow(ctx);
       for (let i in arrowsCoords) {
         if (arrowsCoords[i].coords) {
-          drawSimpleArrow(ctx, arrowsCoords[i].coords)
-          if (arrowsCoords[i].highlight) {drawSimpleArrow(ctx, arrowsCoords[i].coords)}
+          drawArrow(ctx, arrowsCoords[i].coords)
+          if (arrowsCoords[i].highlight) {drawArrow(ctx, arrowsCoords[i].coords)}
         }
       }
       if (typeof arrowMode === "number" && mouseTarget) {
@@ -286,15 +296,15 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
         // the event handler updateMousePosition has just been placed and didn't run,
         // so mousePosition and mouseTarget have their default value
         let tileFrom = tileRefs[arrowMode-1];
-        drawSimpleArrow(ctx, calculateArrowEnds(
-          {
+        drawArrow(ctx, calculateArrowCoords({
+          tilesFrom: [{
             x: tileFrom.offsetLeft,
             y: tileFrom.offsetTop,
             w: tileFrom.offsetWidth,
             h: tileFrom.offsetHeight,
-          },
-          getArrowTip(),
-        ));
+          }],
+          ...getArrowTip(),
+        }));
       }
       ctx.stroke();
       ctx.closePath();
@@ -302,27 +312,25 @@ function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateT
       else { window.requestAnimationFrame(() => loop(ctx)); }
     }
 
-    function getArrowTip(): Point | Rectangle {
+    function getArrowTip(): {mouse?: Point, tilesTo: Rectangle[]} {
       // function giving the arrow tip, active when the user must choose a second tile
-      let arrowTip: Point | Rectangle = {x: 1000, y: 1000}; // TODO find a better initial value?
-      if (Object.keys(tileRefs).filter(key => (tileRefs[key] === mouseTarget)).length === 0)
+      let arrowTip: {mouse?: Point, tilesTo: Rectangle[]} = {tilesTo: []};
+      if (Object.keys(tileRefs).filter((key: any) => (tileRefs[key] === mouseTarget)).length === 0)
         // if no tile is targeted, arrowTip takes the mouse coordinates:
       {
-        arrowTip = {
+        arrowTip.mouse = {
           x: mousePosition.x - board.x,
           y: mousePosition.y - board.y,
         };
-      }
-      else if (mouseTarget)
+      } else if (mouseTarget) {
         // if there is one, arrowTip takes its coordinates, width and height
-      {
-        arrowTip = {
+        arrowTip.tilesTo = [{
           x: mouseTarget.offsetLeft,
           y: mouseTarget.offsetTop,
           w: mouseTarget.offsetWidth,
           h: mouseTarget.offsetHeight,
-        };
-      };
+        }];
+      }
       return arrowTip;
     }
 

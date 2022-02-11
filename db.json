@@ -1,4 +1,58 @@
 {
-  "arrows": [],
-  "tiles": []
+  "arrows": [
+    {
+      "tileFrom": [
+        1,
+        2
+      ],
+      "tileTo": [
+        3,
+        4,
+        5
+      ],
+      "id": 1
+    }
+  ],
+  "tiles": [
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 691,
+      "y": 484,
+      "z": 14,
+      "id": 1
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 738,
+      "y": 213,
+      "z": 18,
+      "id": 2
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 160,
+      "y": 495,
+      "z": 20,
+      "id": 3
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 708,
+      "y": 730,
+      "z": 21,
+      "id": 4
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 408,
+      "y": 738,
+      "z": 19,
+      "id": 5
+    }
+  ]
 }

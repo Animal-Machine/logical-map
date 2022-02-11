@@ -1,9 +1,57 @@
-import { Point, Rectangle, Coords, DoubleCoords, CoordsOrArray, isCoords } from '../types';
+import { Point, Rectangle, PointOrRectangle, Coords, isCoords, DoubleCoords, isDoubleCoords, CoordsOrArray } from '../types';
 
 
-//export function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: Point | Rectangle): DoubleCoords {
-  // I can't find how to do that with TypeScript… TODO find another elegant way
-export function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: any): DoubleCoords {
+function tileSum(previous: Coords, current: Rectangle): Coords {
+  return [previous[0] + current.x, previous[1] + current.y];
+}
+
+export function calculateArrowCoords({tilesFrom, tilesTo, mouse}: {tilesFrom: Rectangle[], tilesTo: Rectangle[], mouse?: Point}): DoubleCoords | CoordsOrArray[] {
+  let coords: DoubleCoords | CoordsOrArray[];
+
+  if (tilesFrom.length === 1 && tilesTo.length <= 1) {
+    if (tilesTo.length === 1) {
+      coords = calculateArrowEnds(tilesFrom[0], tilesTo[0]);
+    }
+    else if (mouse) {
+      coords = calculateArrowEnds(tilesFrom[0], mouse);
+    }
+    else {
+      throw new Error("Arrow is expected to point somewhere.");
+      coords = [0, 0, 0, 0];
+    }
+  }
+  else {
+    // la moyenne des coordonnées des tilesFrom
+    let tFromMean = tilesFrom.reduce(tileSum, [0, 0]);
+    tFromMean[0] /= tilesFrom.length;
+    tFromMean[1] /= tilesFrom.length;
+    let tFromCoords = tilesFrom.map((t: Rectangle): Coords => [t.x, t.y]);
+
+    if (tilesTo.length > 0) {
+      // la moyenne des coordonnées des tilesTo
+      let tToMean = tilesTo.reduce(tileSum, [0, 0]);
+      tToMean[0] /= tilesTo.length;
+      tToMean[1] /= tilesTo.length;
+      let tToCoords = tilesTo.map((t: Rectangle): Coords => [t.x, t.y]);
+
+      if (mouse) {
+       tToCoords.push([mouse.x, mouse.y]);
+      }
+      coords = [tFromMean, tFromCoords, tToMean, tToCoords];
+    }
+    else if (!mouse) {
+      throw new Error("Arrow is expected to point somewhere.");
+      coords = [0, 0, 0, 0];
+    }
+    else {
+      coords = [tFromMean, tFromCoords, [mouse.x, mouse.y]];
+    }
+  }
+  return coords;
+}
+
+//function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: { x: number, y: number, w: number|undefined, h: number|undefined}): DoubleCoords {
+function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: PointOrRectangle): DoubleCoords {
 // the first argument represents a tile position and dimensions,
 // the second one represents either another tile or the mouse pointer position
 // (so W and H can be undefined)
@@ -19,39 +67,27 @@ export function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h
 }
 
 
-export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
-// Draws a double arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
 
-  let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
-  let t = 8; // thickness (half the space between the two lines)
-  let s = (x1-x3)*(y1-y3)>0 ? t : -t; // shift (used at arrow corners)
-  let c = y1<y3 ? t : -t; // cut (used at the arrow's head)
-
-  // First line
-  ctx.moveTo(x1-t, y1);
-  ctx.lineTo(x1-t, y2+s);
-  ctx.lineTo(x3-t, y2+s);
-  ctx.lineTo(x3-t, y3-c);
-
-  // Second line
-  ctx.moveTo(x1+t, y1);
-  ctx.lineTo(x1+t, y2-s);
-  ctx.lineTo(x3+t, y2-s);
-  ctx.lineTo(x3+t, y3-c);
-
-  // Tip
-  ctx.moveTo(x3-2*c, y3-2*c);
-  ctx.lineTo(x3, y3);
-  ctx.lineTo(x3+2*c, y3-2*c);
+export function drawArrow(ctx: CanvasRenderingContext2D, coords: DoubleCoords | CoordsOrArray[]) {
+  if (isDoubleCoords(coords)) {
+    drawSimpleArrow(ctx, coords);
+  } else {
+    drawBranchedArrow(ctx, coords);
+  }
 }
 
 
-export function drawSimpleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
+function drawBranchedArrow(ctx: CanvasRenderingContext2D, coords: CoordsOrArray[]) {
+  drawAcyclicGraph(ctx, coords);
+  //TODO arrow tips
+}
+
+
+function drawSimpleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
 // Draws a simple arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
 
   // Shaft
   let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
-  console.log(x1, x3, y1, y2, y3);
   drawAcyclicGraph(ctx, [[x1, y1], [x1, y2], [x3, y2], [x3, y3]]);
 
   // Tip
@@ -60,7 +96,6 @@ export function drawSimpleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 
   ctx.moveTo(x3-2*w, y3-2*w);
   ctx.lineTo(x3, y3);
   ctx.lineTo(x3+2*w, y3-2*w);
-
 }
 
 
@@ -122,6 +157,34 @@ export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: Coords
 
   traceChain(vertices);
 
+}
+
+
+
+export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
+// Draws a double arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
+
+  let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
+  let t = 8; // thickness (half the space between the two lines)
+  let s = (x1-x3)*(y1-y3)>0 ? t : -t; // shift (used at arrow corners)
+  let c = y1<y3 ? t : -t; // cut (used at the arrow's head)
+
+  // First line
+  ctx.moveTo(x1-t, y1);
+  ctx.lineTo(x1-t, y2+s);
+  ctx.lineTo(x3-t, y2+s);
+  ctx.lineTo(x3-t, y3-c);
+
+  // Second line
+  ctx.moveTo(x1+t, y1);
+  ctx.lineTo(x1+t, y2-s);
+  ctx.lineTo(x3+t, y2-s);
+  ctx.lineTo(x3+t, y3-c);
+
+  // Tip
+  ctx.moveTo(x3-2*c, y3-2*c);
+  ctx.lineTo(x3, y3);
+  ctx.lineTo(x3+2*c, y3-2*c);
 }
 
 

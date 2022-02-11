@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import BoardComponent from './components/Board';
 import AppHeaderComponent from './components/AppHeader';
-import { Address, TileData, TileContent, TileXY, TileZ, Arrow } from './types';
+import { Address, TileData, TileContent, TileXY, TileZ, Operator, Arrow } from './types';
 
 function App() {
 
@@ -66,7 +66,7 @@ function App() {
     // contains the highest z coordinate, used when putting a tile to the foreground
 
   const [arrows, setArrows] = useState<Arrow[]>([]);
-    // contains the properties "from", "to" (ids of the linked tiles) and "id"
+    // contains the properties "tileFrom", "tileTo" (ids of the linked tiles) and "id"
 
 
   // Loading tiles and arrows on page
@@ -173,7 +173,7 @@ function App() {
       let arrowList: number[] = [];
       for (let i = 0; i < arrows.length; i++) {
         let a = arrows[i];
-        if (a.from === id || a.to === id) {
+        if (a.tileFrom.includes(id) || a.tileTo.includes(id)) {
           await fetch(`${myServerAddress}arrows/${a.id}`, {method: 'DELETE',});
           arrowList.push(a.id);
         }
@@ -245,11 +245,20 @@ function App() {
     setArrowMode(m => !m);
   }
 
-  function addArrow(a: number, b: number) {
-    if (arrows.filter(arrow => (arrow.from===a && arrow.to===b)).length === 0) {
+
+  // Add and delete arrows
+
+  function addSimpleArrow(a: number, b: number) {
+    addArrow(a, b, '', '');
+  }
+
+  function addArrow(a: number, b: number, operator1: Operator, operator2: Operator) {
+    if (arrows.filter(arrow => (arrow.tileFrom===[a] && arrow.tileTo===[b])).length === 0) {
       let newArrow = {
-        from: a,
-        to: b,
+        tileFrom: [a],
+        tileTo: [b],
+        operator1: operator1,
+        operator2: operator2,
       };
       myPost("arrows", newArrow)
         .then(() => myGet("arrows"))
