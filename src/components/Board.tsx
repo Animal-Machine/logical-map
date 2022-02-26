@@ -138,8 +138,8 @@ function BoardComponent(props: any) {
 
   // Control z and throw error if two tiles have the same
 
-  let [zJustChanged, setZJustChanged] = useState(false);
-  useEffect(() => { zJustChanged = true; }, [tilesZ]);
+  const [zJustChanged, setZJustChanged] = useState(false);
+  useEffect(() => { setZJustChanged(true); }, [tilesZ]);
 
   useEffect(() => { if (zJustChanged) {
     for (let i = 0; i < tilesZ.length; i++) {

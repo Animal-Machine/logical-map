@@ -148,7 +148,7 @@ function App() {
   const [tilesZ, setTilesZ] = useState<TileZ[]>([]);
     // relative height, used by css property z-index
 
-  let [zMax, setZMax] = useState<TileZ>({z:0, id:0});
+  const [zMax, setZMax] = useState<TileZ>({z:0, id:0});
     // contains the highest z coordinate, used when putting a tile to the foreground
 
   const [arrows, setArrows] = useState<Arrow[]>([]);
