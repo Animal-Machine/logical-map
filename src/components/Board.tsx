@@ -2,33 +2,54 @@ import { useState, useEffect, useRef } from 'react';
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
 import { calculateArrowCoords, drawArrow, drawAcyclicGraph } from './arrowFunctions';
-import { TileData, TileContent, TileXY, TileZ, Arrow, Mode, TileSelection } from '../types';
+import { TileXY, TileZ, TileContent, TileDataPart, TileData, Operator, Arrow, Mode, TileSelection, AddArrow } from '../types';
 import { Point, Rectangle, ArrowCoords, Coords, DoubleCoords, CoordsOrArray } from '../coordTypes';
 
-//function BoardComponent({ addTile, deleteTile, patchTile, mergeTileData, updateTileTruthValue, updateTileText, tilesContent, tilesXY, setTilesXY, tilesZ, setTilesZ, zMax, setZMax, arrows, setArrows, modeState, setModeState, tileSelection, setTileSelection, addArrow, deleteArrow }: any) {
+
 function BoardComponent(props: any) {
 
-  const addTile = props.addTile;
-  const deleteTile = props.deleteTile;
-  const patchTile = props.patchTile;
-  const mergeTileData = props.mergeTileData;
-  const updateTileTruthValue = props.updateTileTruthValue;
-  const updateTileText = props.updateTileText;
-  const tilesContent = props.tilesContent;
-  const tilesXY = props.tilesXY;
-  const setTilesXY = props.setTilesXY;
-  const tilesZ = props.tilesZ;
-  const setTilesZ = props.setTilesZ;
-  const zMax = props.zMax;
-  const setZMax = props.setZMax;
-  const arrows = props.arrows;
-  const setArrows = props.setArrows;
-  const modeState: Mode = props.modeState;
-  const setModeState: (m: Mode) => Mode = props.setModeState;
-  const tileSelection: TileSelection = props.tileSelection;
-  const setTileSelection: (ts: TileSelection) => TileSelection = props.setTileSelection;
-  const addArrow = props.addArrow;
-  const deleteArrow = props.deleteArrow;
+  const addTile:                  (tile: TileDataPart) => void
+    = props.addTile;
+  const deleteTile:               (id: number) => void
+    = props.deleteTile;
+  const patchTile:                (id: number, updatedProperties: object) => Promise<Response>
+    = props.patchTile;
+  const mergeTileData:            (TContent: TileContent[], TXY: TileXY[], TZ: TileZ[]) => TileData[]
+    = props.mergeTileData;
+  const updateTileTruthValue:     (id: number, value: boolean|null) => void
+    = props.updateTileTruthValue;
+  const updateTileText:           (id: number, text: string) => void
+    = props.updateTileText;
+  const tilesContent:             TileContent[]
+    = props.tilesContent;
+  const tilesXY:                  TileXY[]
+    = props.tilesXY;
+  const setTilesXY:               React.Dispatch<React.SetStateAction<TileXY[]>>
+    = props.setTilesXY;
+  const tilesZ:                   TileZ[]
+    = props.tilesZ;
+  const setTilesZ:                React.Dispatch<React.SetStateAction<TileZ[]>>
+    = props.setTilesZ;
+  const zMax:                     TileZ
+    = props.zMax;
+  const setZMax:                  React.Dispatch<React.SetStateAction<TileZ>>
+    = props.setZMax;
+  const arrows:                   Arrow[]
+    = props.arrows;
+  const setArrows:                React.Dispatch<React.SetStateAction<Arrow[]>>
+    = props.setArrows;
+  const modeState:                Mode
+    = props.modeState;
+  const setModeState:             React.Dispatch<React.SetStateAction<Mode>>
+    = props.setModeState;
+  const tileSelection:            TileSelection
+    = props.tileSelection;
+  const setTileSelection:         React.Dispatch<React.SetStateAction<TileSelection>>
+    = props.setTileSelection;
+  const addArrow:                 AddArrow
+    = props.addArrow;
+  const deleteArrow:              (id: number) => void
+    = props.deleteArrow;
 
 
  
@@ -41,9 +62,9 @@ function BoardComponent(props: any) {
     h: 2160,
   };
 
-  const [board, setBoard] = useState(initialBoardCoords);
+  const [board, setBoard] = useState<Rectangle>(initialBoardCoords);
 
-  const [origin, setOrigin] = useState([-initialBoardCoords.x, -initialBoardCoords.y]);
+  const [origin, setOrigin] = useState<Coords>([-initialBoardCoords.x, -initialBoardCoords.y]);
     // I want 0, 0 to be at the center of my board.
     // These "origin" coordinates are therefore added to all tiles coordinates.
 
@@ -91,7 +112,7 @@ function BoardComponent(props: any) {
     foreground(id);
     movingTileId = id;
 
-    let [{ x:tileInitialX, y:tileInitialY }]: [{x: number, y:number}]
+    let [{ x:tileInitialX, y:tileInitialY }]: TileXY[]
       = tilesXY.filter((tile:TileXY)=>tile.id===id);
     mouseRelToEltX = mouseX - tileInitialX;
     mouseRelToEltY = mouseY - tileInitialY;
@@ -110,7 +131,7 @@ function BoardComponent(props: any) {
   };
 
   function stopDraggingTile(e: MouseEvent) {
-    patchTile(movingTileId, {
+    patchTile(movingTileId!, {
       x: e.clientX-mouseRelToEltX,
       y: e.clientY-mouseRelToEltY,
       //z: zMax.z // If in the future, there are errors because of too many concurrent patches, this could be a way to fix it. Unfortunately, zMax is sometimes at its current state, sometimes not. A solution could be to make foreground function to return zMax.z
@@ -238,7 +259,7 @@ function BoardComponent(props: any) {
     // one of its tiles (which can happen when a syncing problem occurs),
     // hence the filter just below which will prevent drawing attempt.
 
-    }).filter((a: ArrowCoords) => a));
+    }).filter((a: ArrowCoords | undefined) => a) as ArrowCoords[]);
   }, [tilesXY, arrows]);
 
 

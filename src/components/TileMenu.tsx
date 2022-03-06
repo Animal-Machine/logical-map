@@ -1,11 +1,31 @@
-export default function TileMenuComponent({ tile, deleteTile, updateTruthValue, onMouseOver, onMouseLeave, closeMenu, className, style }: any) {
+import { TileData, UpdateTruthValue } from '../types';
+
+
+export default function TileMenuComponent(props: any) {
+
+  const tile:                 TileData
+    = props.tile; 
+  const deleteTile:           (id: number) => void
+    = props.deleteTile; 
+  const updateTruthValue:     UpdateTruthValue
+    = props.updateTruthValue; 
+  const onMouseOver:          () => void
+    = props.onMouseOver; 
+  const onMouseLeave:         () => void
+    = props.onMouseLeave; 
+  const closeMenu:            (e?: any) => void
+    = props.closeMenu; 
+  const style:                object
+    = props.style;
+  //const className = props.className; 
+
 
   //useEffect(() => document.querySelectorAll("button").forEach(button => button.addEventListener("click", () => closeMenu(undefined))), []) // didn't work because it was unmounting the component before executing the "onClick" handlers, so I moved closeMenu inside them
 
   return(
     <div
       style = {style}
-      className = {className}
+      className = {"TileMenu"}
 
       onMouseOver = {onMouseOver}
       onMouseLeave = {onMouseLeave}

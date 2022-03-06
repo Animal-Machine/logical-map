@@ -1,4 +1,21 @@
-export default function AppHeaderComponent({ myGet, myPost, setTiles, arrows, setArrows, changeModeState }: any) {
+import { Address, TileData, Arrow, Mode } from '../types';
+
+
+export default function AppHeaderComponent(props: any) {
+
+  const myGet:              (address: Address) => Promise<any>
+    = props.myGet; 
+  const myPost:             (address: Address, data: object) => Promise<Response>
+    = props.myPost; 
+  const setTiles:           (tiles: TileData[]) => void
+    = props.setTiles; 
+  const arrows:             Arrow[]
+    = props.arrows; 
+  const setArrows:          React.Dispatch<React.SetStateAction<Arrow[]>>
+    = props.setArrows; 
+  const changeModeState:    (newMode: Mode) => void
+    = props.changeModeState;
+
 
   function demo() {
     const demoTiles = [

@@ -1,9 +1,34 @@
 import { useState, useEffect, useRef, forwardRef, MouseEvent } from 'react';
 import TileMenuComponent from './TileMenu';
-import { TileSelection } from '../types';
+import { TileData, Operator, Mode, TileSelection, UpdateTruthValue, AddArrow } from '../types';
+import { Coords } from '../coordTypes';
 
 
-const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, updateTruthValue, updateText, modeState, setModeState, tileSelection, setTileSelection, addArrow }: any, ref: any) => {
+const TileComponent = forwardRef((props: any, ref: any) => {
+
+  const origin:               Coords
+    = props.origin;
+  const tile:                 TileData
+    = props.tile;
+  const deleteTile:           (id: number) => void
+    = props.deleteTile;
+  const startDragging:        (id: number, mouseX: number, mouseY: number) => void
+    = props.startDragging;
+  const updateTruthValue:     UpdateTruthValue
+    = props.updateTruthValue;
+  const updateText:           (id: number, text: string) => void
+    = props.updateText;
+  const modeState:            Mode
+    = props.modeState;
+  const setModeState:         React.Dispatch<React.SetStateAction<Mode>>
+    = props.setModeState;
+  const tileSelection:        TileSelection
+    = props.tileSelection;
+  const setTileSelection:     React.Dispatch<React.SetStateAction<TileSelection>>
+    = props.setTileSelection;
+  const addArrow:             AddArrow
+    = props.addArrow;
+
 
 
   // Tile behaviour depending on mode
@@ -93,7 +118,7 @@ const TileComponent = forwardRef(({ origin, tile, deleteTile, startDragging, upd
         updateTruthValue = {updateTruthValue}
         closeMenu = {closeMenu}
 
-        className = {"TileMenu"}
+        //className = {"TileMenu"}
         style = {{
           left: tile.x + origin[0],
           top: tile.y + origin[1]-50,

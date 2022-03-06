@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 import { getArrowHitbox, getButtonBox } from './arrowFunctions';
+import * as coordTypes from '../coordTypes'
 
-export default function ArrowComponent({ arrow, switchHighlight, deleteArrow }: any) {
+
+export default function ArrowComponent(props: any) {
+
+  const arrow:                coordTypes.ArrowCoords
+    = props.arrow; 
+  const switchHighlight:      (id: number, value: boolean) => void
+    = props.switchHighlight; 
+  const deleteArrow:          (id: number) => void
+    = props.deleteArrow;
+
 
   const [hitbox, setHitbox] = useState([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
     // The arrow can be covered with three rectangles. These are their coordinates and sizes: [x, y, w, h].

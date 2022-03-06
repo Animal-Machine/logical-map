@@ -1,7 +1,6 @@
 import { Point, Rectangle, PointOrRectangle, Coords, isCoords, DoubleCoords, isDoubleCoords, CoordsOrArray } from '../coordTypes';
 
 
-
 export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle[], tilesTo: Rectangle[]}): DoubleCoords | CoordsOrArray[] {
 
   function tileSum(previous: Coords, current: Rectangle): Coords {
@@ -175,22 +174,37 @@ export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 
 
 
 
-export function getArrowHitbox([ x1, y1, x3, y3 ]: DoubleCoords): [DoubleCoords, DoubleCoords, DoubleCoords] {
+export function getArrowHitbox(arrow: DoubleCoords | CoordsOrArray[]): [DoubleCoords, DoubleCoords, DoubleCoords] {
 
-  let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
-  let t = 8; // thickness (half the space between the two lines)
-  t += 1;
+  if (isDoubleCoords(arrow)) {
+    const [ x1, y1, x3, y3 ] = arrow;
+    const y2 = Math.round((y1 + y3) / 2); // where the arrow turns
+    let t = 8; // thickness (half the space between the two lines)
+    t += 1;
 
-  let rect1: DoubleCoords = [x1-t, Math.min(y1,y2-t), 2*t, Math.abs(y2-y1)+t];
-  let rect3: DoubleCoords = [x3-t, Math.min(y3,y2-t), 2*t, Math.abs(y3-y2)+t];
-  let rect2: DoubleCoords = [Math.min(x1,x3)-t, y2-t, Math.abs(x3-x1)+2*t, 2*t];
+    let rect1: DoubleCoords = [x1-t, Math.min(y1,y2-t), 2*t, Math.abs(y2-y1)+t];
+    let rect3: DoubleCoords = [x3-t, Math.min(y3,y2-t), 2*t, Math.abs(y3-y2)+t];
+    let rect2: DoubleCoords = [Math.min(x1,x3)-t, y2-t, Math.abs(x3-x1)+2*t, 2*t];
 
-  return [rect1, rect2, rect3];
+    return [rect1, rect2, rect3];
+  }
+  else {
+    //TODO
+    const zero: DoubleCoords = [0, 0, 0, 0];
+    return [zero, zero, zero];
+  }
 
 }
 
 
-export function getButtonBox([ x1, y1, x3, y3 ]: DoubleCoords) {
-  let bs = 44; // button size
-  return [(x1+x3)/2-bs/2, (y1+y3)/2-bs/2, bs];
+export function getButtonBox(arrow: DoubleCoords | CoordsOrArray[]): [number, number, number] {
+  if (isDoubleCoords(arrow)) {
+    const [ x1, y1, x3, y3 ] = arrow;
+    const w = 44; // button size
+    return [(x1+x3)/2-w/2, (y1+y3)/2-w/2, w];
+  }
+  else {
+    //TODO
+    return [0, 0, 0];
+  }
 }

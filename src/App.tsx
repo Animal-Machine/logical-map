@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import BoardComponent from './components/Board';
 import AppHeaderComponent from './components/AppHeader';
-import { Address, TileData, TileContent, TileXY, TileZ, Operator, Arrow, Mode, TileSelection } from './types';
+import { Address, TileXY, TileZ, TileContent, TileDataPart, TileData, Operator, Arrow, Mode, TileSelection } from './types';
 
 
 function App() {
@@ -237,7 +237,7 @@ function App() {
 
   // Add a new tile
 
-  function addTile(tile: TileData) {
+  function addTile(tile: TileDataPart) {
     myPost("tiles", {...tile, z: zMax.z+1})
       .then(() => myGet("tiles"))
         // I need to get the id of the new tile to place arrow, hence this fetch GET
@@ -293,7 +293,7 @@ function App() {
 
   // Change a tile's text
 
-  function updateTileText(id: number, text:string) {
+  function updateTileText(id: number, text: string) {
     patchTile(id, {text: text})
       .catch((e: Error) => console.error("While setting a tile's new text:", e));
       // Est-ce que ce n'est pas trop gourmand d'envoyer une requête à chaque caractère ajouté ou supprimé ? TODO à réfléchir
