@@ -118,11 +118,12 @@ const TileComponent = forwardRef((props: any, ref: any) => {
         updateTruthValue = {updateTruthValue}
         closeMenu = {closeMenu}
 
-        //className = {"TileMenu"}
         style = {{
-          left: tile.x + origin[0],
-          top: tile.y + origin[1]-50,
           position: "absolute",
+          left: tile.x + origin[0] - 86,
+          top: tile.y + origin[1]-50 - 40,
+          width: 172,
+          height: 45,
           zIndex: tile.z+1,
         }}
 
@@ -136,8 +137,12 @@ const TileComponent = forwardRef((props: any, ref: any) => {
                              + (modeState!=='default' ? " ArrowMode" : "")
                              + (readOnly ? "" : " Edition")}
         style = {{
-          left: tile.x + origin[0],
-          top: tile.y + origin[1],
+          position: "absolute",
+          left: tile.x + origin[0] - 86,
+          top: tile.y + origin[1] - 40,
+          width: 172,
+          height: 80,
+          resize: "none",
           zIndex: tile.z,
         }}
 

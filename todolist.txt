@@ -1,14 +1,10 @@
 Étapes principales
 ––––––––––––––––––
 
-Typescript
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Typer toutes les props
-
 Flèches à branches
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Leur donner une forme carrée
-Ajouter les pointes
+Corriger les défauts montrés dans mes captures d'écran
+Rendre le tracé complètement opaque
 Si une tuile est supprimée, retirer seulement une branche si possible
 Corriger le clignotement en changeant le type de mouseTarget et mousePosition
 

@@ -17,7 +17,6 @@ export default function TileMenuComponent(props: any) {
     = props.closeMenu; 
   const style:                object
     = props.style;
-  //const className = props.className; 
 
 
   //useEffect(() => document.querySelectorAll("button").forEach(button => button.addEventListener("click", () => closeMenu(undefined))), []) // didn't work because it was unmounting the component before executing the "onClick" handlers, so I moved closeMenu inside them

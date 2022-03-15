@@ -11,75 +11,48 @@
         5
       ],
       "id": 1
-    },
-    {
-      "tilesFrom": [
-        12
-      ],
-      "tilesTo": [
-        11
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 2
     }
   ],
   "tiles": [
     {
       "text": "",
       "truthValue": null,
-      "x": 691,
-      "y": 484,
-      "z": 14,
+      "x": 1117,
+      "y": 509,
+      "z": 25,
       "id": 1
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 738,
-      "y": 213,
-      "z": 18,
+      "x": 1071,
+      "y": 332,
+      "z": 24,
       "id": 2
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 160,
-      "y": 495,
-      "z": 20,
+      "x": 246,
+      "y": 554,
+      "z": 28,
       "id": 3
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 708,
-      "y": 730,
-      "z": 21,
+      "x": 651,
+      "y": 703,
+      "z": 26,
       "id": 4
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 408,
-      "y": 738,
-      "z": 19,
+      "x": 391,
+      "y": 728,
+      "z": 27,
       "id": 5
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 114,
-      "y": 379,
-      "z": 37,
-      "id": 11
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 350,
-      "y": 142,
-      "z": 36,
-      "id": 12
     }
   ]
 }

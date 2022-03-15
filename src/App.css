@@ -30,9 +30,7 @@
 }
 
 .Tile {
-  position: absolute;
   box-sizing: border-box;
-  width: 172px;
   padding: 20px 15px;
   border-style: none; /* textarea has a border by default */
   font: inherit; /* textarea has default font properties */
@@ -78,10 +76,7 @@
 }
 
 .TileMenu {
-  position: absolute;
   box-sizing: border-box;
-  height: 45px;
-  width: 172px;
   box-shadow: 4px 4px 4px rgba(0,0,0,.5);
   background-color: snow;
   display: flex;
