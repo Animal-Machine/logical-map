@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import './App.css';
+import './Sass/App.scss';
 import BoardComponent from './components/Board';
 import AppHeaderComponent from './components/AppHeader';
 import { Address, TileXY, TileZ, TileContent, TileDataPart, TileData, Operator, Arrow, Mode, TileSelection } from './types';

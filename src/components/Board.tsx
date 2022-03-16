@@ -296,7 +296,12 @@ function BoardComponent(props: any) {
     function loop(ctx: CanvasRenderingContext2D) {
       // animation loop which draws on the canvas context
       ctx.clearRect(0, 0, board.w, board.h);
+      ctx.lineWidth = 2;
       ctx.strokeStyle = 'white';
+      ctx.shadowOffsetX = 4;
+      ctx.shadowOffsetY = 4;
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = 'rgba(0,0,0,.5)';
       ctx.beginPath();
       for (let i in arrowsCoords) {
         if (arrowsCoords[i].coords) {

@@ -1,3 +1,15 @@
+$board-color: #384048;
+$board-color-dark: #21262b;
+$uncertain-color: paleturquoise;
+$uncertain-color-light: #d4f7f7;/*#eafbfb TODO test*/
+$uncertain-color-dark: #57dbdb;/*#2dd2d2 TODO test*/
+$true-color: chartreuse;
+$true-color-light: #ceff99;
+$true-color-dark: #66cc00;
+$false-color: red;
+$false-color-light: #ff9999;
+$false-color-dark: #cc0000;
+
 .App {
   width: 100vw;
   height: 100vh;
@@ -16,12 +28,12 @@
   z-index: 0;
   width: 3840px;
   height: 2160px;
-  background-color: #384048;
+  background-color: $board-color;
   cursor: move;
 }
 
 .Board.ArrowMode {
-  background-color: #21262b;
+  background-color: $board-color-dark;
 }
 
 .Board canvas {
@@ -32,15 +44,15 @@
 .Tile {
   box-sizing: border-box;
   padding: 20px 15px;
-  border-style: none; /* textarea has a border by default */
-  font: inherit; /* textarea has default font properties */
-  outline: 0px; /* disable textarea blue border on focus */
-    /* Notes: Even with a width different than 0, outline-style is still set to none by default */
-    /*        I could delete this line now that I have a .Tile:focus selector */
-  background-color: paleturquoise;
+  background-color: $uncertain-color;
+  border: 3px solid $uncertain-color-dark;
   box-shadow: 4px 4px 4px rgba(0,0,0,.5);
   /*box-shadow: 4px 4px 4px #1C2024;
   /*box-shadow: 4px 4px 2px #2A3036;*/
+  outline: 0px; /* disable textarea blue border on focus */
+    /* Notes: Even with a width different than 0, outline-style is still set to none by default */
+    /*        I could delete this line now that I have a .Tile:focus selector */
+  font: inherit; /* textarea has default font properties */
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
@@ -64,15 +76,17 @@
 }
 
 .Tile::selection, .Tile::-moz-selection {
-  background-color: #384048;
+  background-color: $board-color;
 }
 
 .Tile.True {
-  background-color: chartreuse;
+  background-color: $true-color;
+  border-color: $true-color-dark;
 }
 
 .Tile.False {
-  background-color: red;
+  background-color: $false-color;
+  border-color: $false-color-dark;
 }
 
 .TileMenu {
@@ -100,15 +114,14 @@
   height: 35px;
   width: 35px;
   border-radius: 35px;
-  border: 1px solid #384048;
-  background-color: #eafbfb;
-  background-color: #d4f7f7;
+  border: 1px solid $board-color;
+  background-color: $uncertain-color-light;
   cursor: pointer;
   transition-duration: 0.7s;
 }
 
 .TileMenu button:hover {
-  background-color: paleturquoise;
+  background-color: $uncertain-color;
   border-color: black;
   /* Strangely, this property affects the classified buttons below,
    * but this behavior didn't occur with :active. */
@@ -116,24 +129,24 @@
 
 .TileMenu button:active {
   transition-duration: 0s;
-  background-color: #57dbdb;
+  background-color: $uncertain-color-dark;
 }
 
 .TileMenu button.True {
-  background-color: #ceff99;
+  background-color: $true-color-light;
 }
 
 .TileMenu button.True:hover {
-  background-color: chartreuse;
+  background-color: $true-color;
 }
 
 .TileMenu button.True:active {
   transition-duration: 0s;
-  background-color: #66cc00;
+  background-color: $true-color-dark;
 }
 
 .TileMenu button.False {
-  background-color: #ff9999;
+  background-color: $false-color-light;
 }
 
 .TileMenu button.False:hover {
@@ -142,7 +155,7 @@
 
 .TileMenu button.False:active {
   transition-duration: 0s;
-  background-color: #cc0000;
+  background-color: $false-color-dark;
 }
 
 .TileMenu button.Delete, .DeleteArrow div {
