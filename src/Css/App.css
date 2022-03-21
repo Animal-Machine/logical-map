@@ -32,7 +32,7 @@
 .Tile {
   box-sizing: border-box;
   padding: 20px 15px;
-  background-color: paleturquoise;
+  background-color: #afeeee;
   border: 3px solid #57dbdb;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
   /*box-shadow: 4px 4px 4px #1C2024;
@@ -50,9 +50,8 @@
   cursor: default;
 }
 
-.Tile.Edition, .Tile.ArrowMode:hover {
-  outline: 1px inset white;
-  box-shadow: 4px 4px 4px rgba(255, 255, 255, 0.5);
+.Tile::selection, .Tile::-moz-selection {
+  background-color: #384048;
 }
 
 .Tile.Edition {
@@ -67,8 +66,19 @@
   cursor: text;
 }
 
-.Tile::selection, .Tile::-moz-selection {
-  background-color: #384048;
+.Tile.Edition, .Tile.ArrowMode:hover {
+  outline: 1px inset white;
+  box-shadow: 4px 4px 4px rgba(255, 255, 255, 0.5);
+}
+
+.Tile.Unselectable:hover {
+  outline: 0px;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
+}
+
+.Tile.Unselectable {
+  background-color: #334d4d;
+  border-color: #29383d;
 }
 
 .Tile.True {
@@ -81,6 +91,11 @@
   border-color: #e6ffcc;
 }
 
+.Tile.True.Unselectable {
+  background-color: #40532d;
+  border-color: #334224;
+}
+
 .Tile.False {
   background-color: #ff8080;
   border-color: #ff5c5c;
@@ -89,6 +104,11 @@
 .Tile.False.Edition {
   background-color: #ff5c5c;
   border-color: #ffcccc;
+}
+
+.Tile.False.Unselectable {
+  background-color: #532d2d;
+  border-color: #422424;
 }
 
 .TileMenu {
@@ -117,7 +137,7 @@
   width: 35px;
   border-radius: 35px;
   border: 1px solid #384048;
-  background-color: paleturquoise;
+  background-color: #afeeee;
   cursor: pointer;
   transition-duration: 0.7s;
 }

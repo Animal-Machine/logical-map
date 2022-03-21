@@ -1,22 +1,28 @@
-$board-color: #384048;
+$board-color:      #384048;
 $board-color-dark: #21262b;
 
-$uncertain-color-lighter: #d4f7f7; // 90 %
-$uncertain-color-light: paleturquoise; // 81 %
-$uncertain-color: #57dbdb; // 60 %
-$uncertain-color-dark: #28bdbd; // 45 %
+$uncertain-color-lighter:        #d4f7f7; // lightness 90 %
+$uncertain-color-light:          #afeeee; // lightness 81 % (paleturquoise)
+$uncertain-color:                #57dbdb; // lightness 60 %
+$uncertain-color-dark:           #28bdbd; // lightness 45 %
+$uncertain-color-darker-greyed:  #334d4d; // lightness 25 %, saturation 20 %
+$uncertain-color-darkest-greyed: #29383d; // lightness 20 %, saturation 20 %
 
-$true-color-lighter: #e6ffcc; // 90 %
-$true-color-light: #ccff99; // 80 %
-$true-color: #8cff1a; // 55 %
-$true-color-dark: #66cc00; // 40 %
-// 50 % : chartreuse
+$true-color-lighter:        #e6ffcc; // 90 %
+$true-color-light:          #ccff99; // 80 %
+$true-color:                #8cff1a; // 55 %
+$true-color-dark:           #66cc00; // 40 %
+$true-color-darker-greyed:  #40532d; // 25 %, 30 %
+$true-color-darkest-greyed: #334224; // 20 %, 30 %
+// lightness 50 % : chartreuse
 
-$false-color-lighter: #ffcccc; // 90 %
-$false-color-light: #ff8080; // 80 %
-$false-color: #ff5c5c; // 68 %
-$false-color-dark: #cc0000; // 40 %
-// 50 % : red
+$false-color-lighter:        #ffcccc; // 90 %
+$false-color-light:          #ff8080; // 80 %
+$false-color:                #ff5c5c; // 68 %
+$false-color-dark:           #cc0000; // 40 %
+$false-color-darker-greyed:  #532d2d; // 25 %, 30 %
+$false-color-darkest-greyed: #422424; // 20 %, 30 %
+// lightness 50 % : red
 
 .App {
   width: 100vw;
@@ -68,9 +74,9 @@ $false-color-dark: #cc0000; // 40 %
   cursor: default;
 }
 
-.Tile.Edition, .Tile.ArrowMode:hover {
-  outline: 1px inset white;
-  box-shadow: 4px 4px 4px rgba(255,255,255,.5);
+.Tile::selection, .Tile::-moz-selection {
+  // for selected text
+  background-color: $board-color;
 }
 
 .Tile.Edition {
@@ -85,9 +91,20 @@ $false-color-dark: #cc0000; // 40 %
   cursor: text;
 }
 
-.Tile::selection, .Tile::-moz-selection {
-  // for selected text
-  background-color: $board-color;
+.Tile.Edition, .Tile.ArrowMode:hover {
+  outline: 1px inset white;
+  box-shadow: 4px 4px 4px rgba(255,255,255,.5);
+}
+
+.Tile.Unselectable:hover {
+  // without :hover, priority is giver to the ArrowMode:hover above
+  outline: 0px;
+  box-shadow: 4px 4px 4px rgba(0,0,0,.5);
+}
+
+.Tile.Unselectable {
+  background-color: $uncertain-color-darker-greyed;
+  border-color: $uncertain-color-darkest-greyed;
 }
 
 .Tile.True {
@@ -100,6 +117,11 @@ $false-color-dark: #cc0000; // 40 %
   border-color: $true-color-lighter;
 }
 
+.Tile.True.Unselectable {
+  background-color: $true-color-darker-greyed;
+  border-color: $true-color-darkest-greyed;
+}
+
 .Tile.False {
   background-color: $false-color-light;
   border-color: $false-color;
@@ -108,6 +130,11 @@ $false-color-dark: #cc0000; // 40 %
 .Tile.False.Edition {
   background-color: $false-color;
   border-color: $false-color-lighter;
+}
+
+.Tile.False.Unselectable {
+  background-color: $false-color-darker-greyed;
+  border-color: $false-color-darkest-greyed;
 }
 
 .TileMenu {

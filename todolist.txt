@@ -1,10 +1,6 @@
 Étapes principales
 ––––––––––––––––––
 
-Visuel
-¯¯¯¯¯¯
-Griser les tuiles interdites en mode flèche
-
 Flèches à branches
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Corriger les défauts montrés dans mes captures d'écran

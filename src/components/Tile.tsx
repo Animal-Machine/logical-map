@@ -134,8 +134,11 @@ const TileComponent = forwardRef((props: any, ref: any) => {
       <textarea
         ref = {ref}
         className = {"Tile" + (tile.truthValue ? " True" : (tile.truthValue===false?" False":""))
-                             + (modeState!=='default' ? " ArrowMode" : "")
-                             + (readOnly ? "" : " Edition")}
+                            + (modeState!=='default' ? " ArrowMode" : "")
+                            + (readOnly ? "" : " Edition")
+                            + ((tileSelection.tilesFrom.includes(tile.id)
+                               || tileSelection.tilesTo.includes(tile.id)) ? " Unselectable" : "")
+        }
         style = {{
           position: "absolute",
           left: tile.x + origin[0] - 86,

@@ -333,10 +333,10 @@ function BoardComponent(props: any) {
       else { window.requestAnimationFrame(() => loop(ctx)); }
     }
 
-    function getArrowTip(excludedTiles: number[]): Rectangle {
+    function getArrowTip(unselectableTiles: number[]): Rectangle {
       // function giving the arrow tip, active when the user must choose a second tile
       let arrowTip = new Rectangle();
-      if (Object.keys(tileRefs).filter((key: string) => (!(excludedTiles.includes(Number(key) + 1)) && tileRefs[Number(key)] === mouseTarget)).length === 0) {
+      if (Object.keys(tileRefs).filter((key: string) => (!(unselectableTiles.includes(Number(key) + 1)) && tileRefs[Number(key)] === mouseTarget)).length === 0) {
         // if no tile is targeted, arrowTip takes the mouse coordinates:
         arrowTip.x = mousePosition.x - board.x;
         arrowTip.y = mousePosition.y - board.y;
