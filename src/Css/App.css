@@ -1,5 +1,3 @@
-/*#eafbfb TODO test*/
-/*#2dd2d2 TODO test*/
 .App {
   width: 100vw;
   height: 100vh;
@@ -58,6 +56,8 @@
 }
 
 .Tile.Edition {
+  background-color: #57dbdb;
+  border-color: #d4f7f7;
   color: white;
   font-weight: bold;
   -moz-user-select: auto;
@@ -72,13 +72,23 @@
 }
 
 .Tile.True {
-  background-color: chartreuse;
-  border-color: #66cc00;
+  background-color: #ccff99;
+  border-color: #8cff1a;
+}
+
+.Tile.True.Edition {
+  background-color: #8cff1a;
+  border-color: #e6ffcc;
 }
 
 .Tile.False {
-  background-color: red;
-  border-color: #cc0000;
+  background-color: #ff8080;
+  border-color: #ff5c5c;
+}
+
+.Tile.False.Edition {
+  background-color: #ff5c5c;
+  border-color: #ffcccc;
 }
 
 .TileMenu {
@@ -107,13 +117,13 @@
   width: 35px;
   border-radius: 35px;
   border: 1px solid #384048;
-  background-color: #d4f7f7;
+  background-color: paleturquoise;
   cursor: pointer;
   transition-duration: 0.7s;
 }
 
 .TileMenu button:hover {
-  background-color: paleturquoise;
+  background-color: #57dbdb;
   border-color: black;
   /* Strangely, this property affects the classified buttons below,
    * but this behavior didn't occur with :active. */
@@ -121,15 +131,15 @@
 
 .TileMenu button:active {
   transition-duration: 0s;
-  background-color: #57dbdb;
+  background-color: #28bdbd;
 }
 
 .TileMenu button.True {
-  background-color: #ceff99;
+  background-color: #ccff99;
 }
 
 .TileMenu button.True:hover {
-  background-color: chartreuse;
+  background-color: #8cff1a;
 }
 
 .TileMenu button.True:active {
@@ -138,7 +148,7 @@
 }
 
 .TileMenu button.False {
-  background-color: #ff9999;
+  background-color: #ff8080;
 }
 
 .TileMenu button.False:hover {

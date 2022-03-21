@@ -4,7 +4,6 @@
 Visuel
 ¯¯¯¯¯¯
 Griser les tuiles interdites en mode flèche
-Tuiles plus foncées en mode édition
 
 Flèches à branches
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -95,14 +94,11 @@ Ajuster la position de TileMenu en fonction de la place sur l'écran
 
 Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
 
-Utiliser SASS pour pouvoir faire des choses comme ça :
-$main-color: #384048;
+Remettre la fonction de highlight des flèches
 
 
 Améliorations de l'expérience utilisateur
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Nouvelle tuile centrée et pas coin haut-gauche
-
 ECHAP pour quitter le mode texte
 
 Les tuiles déjà reliées par une flèche sont grisées dans le mode de positionnement de flèche, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier.

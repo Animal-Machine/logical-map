@@ -1,14 +1,22 @@
 $board-color: #384048;
 $board-color-dark: #21262b;
-$uncertain-color: paleturquoise;
-$uncertain-color-light: #d4f7f7;/*#eafbfb TODO test*/
-$uncertain-color-dark: #57dbdb;/*#2dd2d2 TODO test*/
-$true-color: chartreuse;
-$true-color-light: #ceff99;
-$true-color-dark: #66cc00;
-$false-color: red;
-$false-color-light: #ff9999;
-$false-color-dark: #cc0000;
+
+$uncertain-color-lighter: #d4f7f7; // 90 %
+$uncertain-color-light: paleturquoise; // 81 %
+$uncertain-color: #57dbdb; // 60 %
+$uncertain-color-dark: #28bdbd; // 45 %
+
+$true-color-lighter: #e6ffcc; // 90 %
+$true-color-light: #ccff99; // 80 %
+$true-color: #8cff1a; // 55 %
+$true-color-dark: #66cc00; // 40 %
+// 50 % : chartreuse
+
+$false-color-lighter: #ffcccc; // 90 %
+$false-color-light: #ff8080; // 80 %
+$false-color: #ff5c5c; // 68 %
+$false-color-dark: #cc0000; // 40 %
+// 50 % : red
 
 .App {
   width: 100vw;
@@ -44,8 +52,8 @@ $false-color-dark: #cc0000;
 .Tile {
   box-sizing: border-box;
   padding: 20px 15px;
-  background-color: $uncertain-color;
-  border: 3px solid $uncertain-color-dark;
+  background-color: $uncertain-color-light;
+  border: 3px solid $uncertain-color;
   box-shadow: 4px 4px 4px rgba(0,0,0,.5);
   /*box-shadow: 4px 4px 4px #1C2024;
   /*box-shadow: 4px 4px 2px #2A3036;*/
@@ -66,6 +74,8 @@ $false-color-dark: #cc0000;
 }
 
 .Tile.Edition {
+  background-color: $uncertain-color;
+  border-color: $uncertain-color-lighter;
   color: white;
   font-weight: bold;
   -moz-user-select: auto;
@@ -76,17 +86,28 @@ $false-color-dark: #cc0000;
 }
 
 .Tile::selection, .Tile::-moz-selection {
+  // for selected text
   background-color: $board-color;
 }
 
 .Tile.True {
+  background-color: $true-color-light;
+  border-color: $true-color;
+}
+
+.Tile.True.Edition {
   background-color: $true-color;
-  border-color: $true-color-dark;
+  border-color: $true-color-lighter;
 }
 
 .Tile.False {
+  background-color: $false-color-light;
+  border-color: $false-color;
+}
+
+.Tile.False.Edition {
   background-color: $false-color;
-  border-color: $false-color-dark;
+  border-color: $false-color-lighter;
 }
 
 .TileMenu {

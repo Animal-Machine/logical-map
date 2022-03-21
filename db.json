@@ -52,7 +52,7 @@
   "tiles": [
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": true,
       "x": 933,
       "y": 324,
       "z": 143,
@@ -68,7 +68,7 @@
     },
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": false,
       "x": 190,
       "y": 518,
       "z": 147,
@@ -76,7 +76,7 @@
     },
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": false,
       "x": 531,
       "y": 790,
       "z": 145,
@@ -100,7 +100,7 @@
     },
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": false,
       "x": 1205,
       "y": 643,
       "z": 148,
@@ -108,7 +108,7 @@
     },
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": true,
       "x": 1167,
       "y": 852,
       "z": 141,
@@ -124,7 +124,7 @@
     },
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": true,
       "x": 1541,
       "y": 855,
       "z": 139,
@@ -140,7 +140,7 @@
     },
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": false,
       "x": 699,
       "y": 449,
       "z": 156,
@@ -148,7 +148,7 @@
     },
     {
       "text": "",
-      "truthValue": null,
+      "truthValue": true,
       "x": 934,
       "y": 500,
       "z": 154,
