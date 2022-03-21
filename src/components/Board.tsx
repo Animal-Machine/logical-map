@@ -316,10 +316,11 @@ function BoardComponent(props: any) {
         // not to draw the arrow being placed.
         let tFrom = tileSelection.tilesFrom.map(tileIdToRectangle);
         let tTo = tileSelection.tilesTo.map(tileIdToRectangle);
+        let tAll = tileSelection.tilesFrom.concat(tileSelection.tilesTo);
         if (modeState === 'branchedArrow1') {
-          tFrom.push(getArrowTip());
+          tFrom.push(getArrowTip(tAll));
         } else {
-          tTo.push(getArrowTip());
+          tTo.push(getArrowTip(tAll));
         }
         drawArrow(ctx, calculateArrowCoords({
           tilesFrom: tFrom,
@@ -332,10 +333,10 @@ function BoardComponent(props: any) {
       else { window.requestAnimationFrame(() => loop(ctx)); }
     }
 
-    function getArrowTip(): Rectangle {
+    function getArrowTip(excludedTiles: number[]): Rectangle {
       // function giving the arrow tip, active when the user must choose a second tile
       let arrowTip = new Rectangle();
-      if (Object.keys(tileRefs).filter((key: any) => (tileRefs[key] === mouseTarget)).length === 0) {
+      if (Object.keys(tileRefs).filter((key: string) => (!(excludedTiles.includes(Number(key) + 1)) && tileRefs[Number(key)] === mouseTarget)).length === 0) {
         // if no tile is targeted, arrowTip takes the mouse coordinates:
         arrowTip.x = mousePosition.x - board.x;
         arrowTip.y = mousePosition.y - board.y;

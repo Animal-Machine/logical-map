@@ -53,7 +53,7 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
     toSD[1] = Math.sqrt(toSD[1] / tilesTo.length);
 
     // standard deviation of all tile coordinates
-    let allSD = tilesAll.reduce(tileSumQuadraticDeviations(toMean), [0, 0]);
+    let allSD = tilesAll.reduce(tileSumQuadraticDeviations(allMean), [0, 0]);
     allSD[0] = Math.sqrt(allSD[0] / (tilesAll.length));
     allSD[1] = Math.sqrt(allSD[1] / (tilesAll.length));
 
@@ -66,7 +66,7 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
 
 
     const d1 = 30; // minimum distance from tile to line
-    const d2 = 10; // size of the arrow head
+    const d2 = 12; // size of the arrow head
     // box around all "from" tiles:
     const fromBottom = Math.max(...tilesFrom.map((t: Rectangle): number => t.y + t.h)) + d1;
     const fromTop    = Math.min(...tilesFrom.map((t: Rectangle): number => t.y      )) - d1;
@@ -90,195 +90,329 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
 
     // final coordinates of vertices
 
-    // ordinate comparisons
-    if (fromBottom < toTop) {
-      // if "from" tiles are above all "to" tiles:
-      // lines below "from" tiles and above "to" tiles
+    if (tilesTo.length) {
+
+      // ordinate comparisons
+      if (fromBottom < toTop) {
+        // if "from" tiles are above all "to" tiles:
+        // lines below "from" tiles and above "to" tiles
+        if (fromRatio > 0) {
+          // horizontal "from" line
+          fromLineY = fromBottom;
+          fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h]]);
+        }
+        if (toRatio > 0) {
+          // horizontal "to" line
+          toLineY = toTop;
+          toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]);
+        }
+      }
+      else if (fromTop > toBottom) {
+        // if "from" tiles are below all "to" tiles:
+        // lines above "from" tiles and below "to" tiles
+        if (fromRatio > 0) {
+          // horizontal "from" line
+          fromLineY = fromTop;
+          fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y]]);
+        }
+        if (toRatio > 0) {
+          // horizontal "to" line
+          toLineY = toBottom;
+          toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]);
+        }
+      }
+      else { sameY = true; }
+
+      // abscissa comparisons
+      if (fromRight < toLeft) {
+        // if "from" tiles are to the left of all "to" tiles:
+        // lines to the right of "from" tiles and to the left of "to" tiles
+        if (fromRatio <= 0) {
+          // vertical "from" line
+          fromLineX = fromRight;
+          fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2]]);
+        }
+        if (toRatio <= 0) {
+          // vertical "to" line
+          toLineX = toLeft;
+          toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[toLineX!, t.y + t.h/2], [t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]);
+        }
+      }
+      else if (fromLeft > toRight) {
+        // if "from" tiles are to the right of all "to" tiles:
+        // lines to the left of "from" tiles and to the right of "to" tiles
+        if (fromRatio <= 0) {
+          // vertical "from" line
+          fromLineX = fromLeft;
+          fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x, t.y + t.h/2]]);
+        }
+        if (toRatio <= 0) {
+          // vertical "to" line
+          toLineX = toRight;
+          toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[toLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]);
+        }
+      }
+      else { sameX = true; }
+
+      let commonHorizontalLine = false;
+      let commonVerticalLine = false;
+
+      if (sameX && sameY) {
+        // if the "from" and "to" frames overlap each other:
+        // common vertical or horizontal line depending on global spreading
+        if (allRatio > 0) { commonHorizontalLine = true; }
+        else { commonVerticalLine = true; }
+      }
+      else if (sameX) {
+        if (fromRatio <= 0 && toRatio <= 0) { commonVerticalLine = true; }
+          // if "from" and "two" tiles are both spread along a vertical axis:
+          // common vertical line for "from" and "to" tiles
+        else if (fromRatio <= 0) {
+          // vertical "from" line and horizontal "to" line
+          fromLineX = fromLeft; // TODO make fromLineX between the two ends of the "to" line
+          fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x, t.y + t.h/2]]);
+        }
+        else if (toRatio <= 0) {
+          // vertical "to" line and horizontal "from" line
+          toLineX = toLeft; // TODO make toLineX between the two ends of the "from" line
+          toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[toLineX!, t.y + t.h/2], [t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]);
+        }
+      }
+      else if (sameY) {
+        if (fromRatio > 0 && toRatio > 0) { commonHorizontalLine = true; }
+          // if "from" and "two" tiles are already spread along a horizontal axis:
+          // common horizontal line for "from" and "to" tiles
+        else if (fromRatio > 0) {
+          // horizontal "from" line and vertical "to" line
+          fromLineY = fromTop; // TODO make fromLineY between the two ends of the "to" line
+          fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y]]);
+        }
+        else if (toRatio > 0) {
+          // horizontal "to" line and vertical "from" line
+          toLineY = toTop; // TODO make toLineY between the two ends of the "from" line
+          toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]);
+        }
+      }
+
+      if (commonVerticalLine) {
+        fromLineX = Math.max(fromRight, toRight); // right by default
+        fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2]]);
+        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]);
+        coords = [fromCoords[0][0] as Coords, fromCoords.concat(toCoords)];
+      }
+      else if (commonHorizontalLine) {
+        fromLineY = Math.max(fromBottom, toBottom); // bottom by default
+        fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h]]);
+        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]);
+        coords = [fromCoords[0][0] as Coords, fromCoords.concat(toCoords)];
+      }
+      else {
+        // coordinates in the middle
+        let fromLineEnds: Coords = [0, 0];
+        let toLineEnds: Coords = [0, 0];
+        (() => {
+          function extractEnds(tiles: Rectangle[], lineX: number|null): Coords {
+            const T = tiles.map((t: Rectangle): number => (lineX !== null) ? t.y+t.h/2 : t.x+t.w/2);
+            return [Math.min(...T), Math.max(...T)]
+          }
+          fromLineEnds = extractEnds(tilesFrom, fromLineX);
+          toLineEnds = extractEnds(tilesTo, toLineX);
+        })();
+        let fromLineMiddle = (fromLineEnds[0] + fromLineEnds[1]) / 2;
+        let toLineMiddle = (toLineEnds[0] + toLineEnds[1]) / 2;
+        let overlappingZone: [number|null, number|null] = [null, null]
+        if (fromLineEnds[0] <= toLineEnds[0] && toLineEnds[0] <= fromLineEnds[1]) {
+          overlappingZone = [toLineEnds[0], Math.min(toLineEnds[1], fromLineEnds[1])];
+        }
+        else if (fromLineEnds[0] <= toLineEnds[1] && toLineEnds[1] <= fromLineEnds[1]){
+          overlappingZone = [fromLineEnds[0], toLineEnds[1]];
+        }
+        else if (toLineEnds[0] <= fromLineEnds[0] && fromLineEnds[1] <= toLineEnds[1]) {
+          overlappingZone = fromLineEnds;
+        }
+
+        if (overlappingZone[0] !== null) {
+          let overlap = overlappingZone[1]! - overlappingZone[0] + 1;
+          let toOverlap = overlap / (toLineEnds[1] - toLineEnds[0] + 1);
+          let fromOverlap = overlap / (fromLineEnds[1] - fromLineEnds[0] + 1);
+          toLineMiddle = (overlappingZone[0] + overlappingZone[1]!) / 2;
+          fromLineMiddle = toLineMiddle;
+        }
+
+        let fromPoint: CoordsOrArray = [fromLineMiddle, fromLineMiddle];
+        let toPoint: CoordsOrArray = [toLineMiddle, toLineMiddle];
+          // temporary values
+
+        let middle = 0;
+        let middleCoords: CoordsOrArray = [];
+
+        if (commonVerticalLine || commonHorizontalLine) {
+          coords = [fromPoint, fromCoords!, ...middleCoords, toPoint, toCoords!];
+        }
+        else if (tilesFrom.length > 1 && tilesTo.length > 1) {
+          if (fromLineY !== null && toLineY !== null) {
+            // two horizontal lines
+            fromPoint[1] = fromLineY;
+            toPoint[1] = toLineY;
+            middle = (fromLineY + toLineY) / 2;
+            middleCoords = [[fromLineMiddle, middle], [toLineMiddle, middle]];
+          }
+          else if (fromLineX !== null && toLineX !== null) {
+            // two vertical lines
+            fromPoint[0] = fromLineX;
+            toPoint[0] = toLineX;
+            middle = (fromLineX + toLineX) / 2;
+            middleCoords = [[middle, fromLineMiddle], [middle, toLineMiddle]];
+          }
+          else if (fromLineY !== null && toLineX !== null) {
+            // horizontal "from" line, vertical "to" line
+            fromPoint[1] = fromLineY;
+            toPoint[0] = toLineX;
+            middleCoords = [[fromLineMiddle, toLineMiddle]];
+          }
+          else if (fromLineX !== null && toLineY !== null){
+            // vertical "from" line, horizontal "to" line
+            fromPoint[0] = fromLineX;
+            toPoint[1] = toLineY;
+            middleCoords = [[toLineMiddle, fromLineMiddle]];
+          }
+          else {
+            throw new Error(`Impossible case: neither horizontal nor vertical line.
+             fromLineX = ${fromLineX}
+             toLineX = ${toLineX}
+             fromLineY = ${fromLineY}
+             toLineY = ${toLineY}`);
+          }
+          coords = [fromPoint, fromCoords!, ...middleCoords, toPoint, toCoords!];
+        }
+        else if (tilesFrom.length === 1) {
+          // if there is only one "from" tile
+          let t = tilesFrom[0];
+          if (toLineX !== null) {
+            // vertical line
+            toPoint[0] = toLineX;
+            if (toLineEnds[0] <= t.y + t.h/2 && t.y + t.h/2 <= toLineEnds[1]) {
+              toPoint[1] = t.y + t.h/2;
+              if (toLineX < t.x) { fromCoords = [t.x, t.y + t.h/2]; }
+              else if (t.x + t.w < toLineX) { fromCoords = [t.x + t.w, t.y + t.h/2]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else if (Math.abs(t.x + t.w/2 - toLineX) > Math.abs(t.y + t.h/2 - toLineMiddle)) {
+              middle = (toLineX + t.x) / 2;
+              middleCoords = [[middle, t.y + t.h/2], [middle, toLineMiddle]];
+              if (toLineX < t.x) { fromCoords = [t.x, t.y + t.h/2]; }
+              else if (t.x + t.w < toLineX) { fromCoords = [t.x + t.w, t.y + t.h/2]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else {
+              middleCoords = [[t.x + t.w/2, toLineMiddle]];
+              if (toLineMiddle < t.y) { fromCoords = [t.x + t.w/2, t.y]; }
+              else { fromCoords = [t.x + t.w/2, t.y + t.h]; }
+            }
+          }
+          else if (toLineY !== null) {
+            // horizontal line
+            toPoint[1] = toLineY;
+            if (toLineEnds[0] <= t.x + t.w/2 && t.x + t.w/2 <= toLineEnds[1]) {
+              toPoint[0] = t.x + t.w/2;
+              if (toLineY < t.y) { fromCoords = [t.x + t.w/2, t.y]; }
+              else if (t.y + t.h < toLineY) { fromCoords = [t.x + t.w/2, t.y + t.h]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else if (Math.abs(t.y + t.h/2 - toLineY) > Math.abs(t.x + t.w/2 - toLineMiddle)) {
+              middle = (toLineY + t.y) / 2;
+              middleCoords = [[t.x + t.w/2, middle], [toLineMiddle, middle]];
+              if (toLineY < t.y) { fromCoords = [t.x + t.w/2, t.y]; }
+              else if (t.y + t.h < toLineY) { fromCoords = [t.x + t.w/2, t.y + t.h]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else {
+              middleCoords = [[toLineMiddle, t.y + t.h/2]];
+              if (toLineMiddle < t.x) { fromCoords = [t.x, t.y + t.h/2]; }
+              else { fromCoords = [t.x + t.w, t.y + t.h/2]; }
+            }
+          }
+          else {
+            throw new Error(`Impossible case: neither horizontal nor vertical line.
+             toLineX = ${toLineX}
+             toLineY = ${toLineY}`);
+          }
+          coords = [fromCoords!, ...middleCoords, toPoint, toCoords!];
+        }
+        else {
+          // if there is only one "to" tile
+          let t = tilesTo[0];
+          if (fromLineX !== null) {
+            // vertical line
+            fromPoint[0] = fromLineX;
+            if (fromLineEnds[0] <= t.y + t.h/2 && t.y + t.h/2 <= fromLineEnds[1]) {
+              fromPoint[1] = t.y + t.h/2;
+              if (fromLineX < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
+              else if (t.x + t.w < fromLineX) { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else if (Math.abs(t.x + t.w/2 - fromLineX) > Math.abs(t.y + t.h/2 - fromLineMiddle)) {
+              middle = (fromLineX + t.x) / 2;
+              middleCoords = [[middle, fromLineMiddle], [middle, t.y + t.h/2]];
+              if (fromLineX < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
+              else if (t.x + t.w < fromLineX) { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else {
+              middleCoords = [[t.x + t.w/2, fromLineMiddle]];
+              if (fromLineMiddle < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
+              else { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
+            }
+          }
+          else if (fromLineY !== null) {
+            // horizontal line
+            fromPoint[1] = fromLineY;
+            if (fromLineEnds[0] <= t.x + t.w/2 && t.x + t.w/2 <= fromLineEnds[1]) {
+              fromPoint[0] = t.x + t.w/2;
+              if (fromLineY < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
+              else if (t.y + t.h < fromLineY) { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else if (Math.abs(t.y + t.h/2 - fromLineY) > Math.abs(t.x + t.w/2 - fromLineMiddle)) {
+              middle = (fromLineY + t.y) / 2;
+              middleCoords = [[fromLineMiddle, middle], [t.x + t.w/2, middle]];
+              if (fromLineY < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
+              else if (t.y + t.h < fromLineY) { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
+              else { throw new Error("This shouldn't be happening."); }
+            }
+            else {
+              middleCoords = [[fromLineMiddle, t.y + t.h/2]];
+              if (fromLineMiddle < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
+              else { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
+            }
+          }
+          else {
+            throw new Error(`Impossible case: neither horizontal nor vertical line.
+             fromLineX = ${fromLineX}
+             fromLineY = ${fromLineY}`);
+          }
+          coords = [fromPoint, fromCoords!, ...middleCoords, ...toCoords!];
+        }
+      }
+    }
+
+    else if (tilesFrom.length > 1) {
+      // if there is no "to" tiles, it means we are in arrow mode and the user has not selected them yet
       if (fromRatio > 0) {
         // horizontal "from" line
-        fromLineY = fromBottom;
+        fromLineY = fromBottom; // bottom by default
         fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h]]);
       }
-      if (toRatio > 0) {
-        // horizontal "to" line
-        toLineY = toTop;
-        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]);
-      }
-    }
-    else if (fromTop > toBottom) {
-      // if "from" tiles are below all "to" tiles:
-      // lines above "from" tiles and below "to" tiles
-      if (fromRatio > 0) {
-        // horizontal "from" line
-        fromLineY = fromTop;
-        fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y]]);
-      }
-      if (toRatio > 0) {
-        // horizontal "to" line
-        toLineY = toBottom;
-        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]);
-      }
-    }
-    else { sameY = true; }
-
-    // abscissa comparisons
-    if (fromRight < toLeft) {
-      // if "from" tiles are to the left of all "to" tiles:
-      // lines to the right of "from" tiles and to the left of "to" tiles
-      if (fromRatio <= 0) {
+      else {
         // vertical "from" line
-        fromLineX = fromRight;
+        fromLineX = fromRight; // right by default
         fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2]]);
       }
-      if (toRatio <= 0) {
-        // vertical "to" line
-        toLineX = toLeft;
-        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[toLineX!, t.y + t.h/2], [t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]);
-      }
-    }
-    else if (fromLeft > toRight) {
-      // if "from" tiles are to the right of all "to" tiles:
-      // lines to the left of "from" tiles and to the right of "to" tiles
-      if (fromRatio <= 0) {
-        // vertical "from" line
-        fromLineX = fromLeft;
-        fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x, t.y + t.h/2]]);
-      }
-      if (toRatio <= 0) {
-        // vertical "to" line
-        toLineX = toRight;
-        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[toLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]);
-      }
-    }
-    else { sameX = true; }
-
-    let commonHorizontalLine = false;
-    let commonVerticalLine = false;
-
-    if (sameX && sameY) {
-      // if the "from" and "to" frames overlap each other:
-      // common vertical or horizontal line depending on global spreading
-      if (allRatio > 0) { commonHorizontalLine = true; }
-      else { commonVerticalLine = true; }
-    }
-    else if (sameX) {
-      if (fromRatio <= 0 && toRatio <= 0) { commonVerticalLine = true; }
-        // if "from" and "two" tiles are both spread along a vertical axis:
-        // common vertical line for "from" and "to" tiles
-      else if (fromRatio <= 0) {
-        // vertical "from" line and horizontal "to" line
-        fromLineX = fromLeft; // TODO make fromLineX between the two ends of the "to" line
-        fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x, t.y + t.h/2]]);
-      }
-      else if (toRatio <= 0) {
-        // vertical "to" line and horizontal "from" line
-        toLineX = toLeft; // TODO make toLineX between the two ends of the "from" line
-        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[toLineX!, t.y + t.h/2], [t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]);
-      }
-    }
-    else if (sameY) {
-      if (fromRatio > 0 && toRatio > 0) { commonHorizontalLine = true; }
-        // if "from" and "two" tiles are already spread along a horizontal axis:
-        // common horizontal line for "from" and "to" tiles
-      else if (fromRatio > 0) {
-        // horizontal "from" line and vertical "to" line
-        fromLineY = fromTop; // TODO make fromLineY between the two ends of the "to" line
-        fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y]]);
-      }
-      else if (toRatio > 0) {
-        // horizontal "to" line and vertical "from" line
-        toLineY = toTop; // TODO make toLineY between the two ends of the "from" line
-        toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]);
-      }
+      coords = [fromCoords[0][0] as Coords, fromCoords!];
     }
 
-    if (commonVerticalLine) {
-      fromLineX = Math.min(fromLeft, toLeft); // TODO find better position
-      toLineX = fromLineX;
-      fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x, t.y + t.h/2]]);
-      toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[toLineX!, t.y + t.h/2], [t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]);
-    }
-    if (commonHorizontalLine) {
-      fromLineY = Math.min(fromTop, toTop); // TODO find better position
-      toLineY = fromLineY;
-      fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y]]);
-      toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]);
-    }
+    else { coords = []; }
 
-
-    // final coordinates in the middle
-    let fromLineEnds: Coords = [0, 0];
-    let toLineEnds: Coords = [0, 0];
-    (() => {
-      function extractEnds(tiles: Rectangle[], lineX: number|null): Coords {
-        const T = tiles.map((t: Rectangle): number => (lineX !== null) ? t.y+t.h/2 : t.x+t.w/2);
-        return [Math.min(...T), Math.max(...T)]
-      }
-      fromLineEnds = extractEnds(tilesFrom, fromLineX);
-      toLineEnds = extractEnds(tilesTo, toLineX);
-    })();
-    let fromLineMiddle = (fromLineEnds[0] + fromLineEnds[1]) / 2;
-    let toLineMiddle = (toLineEnds[0] + toLineEnds[1]) / 2;
-    let overlappingZone: [number|null, number|null] = [null, null]
-    if (fromLineEnds[0] <= toLineEnds[0] && toLineEnds[0] <= fromLineEnds[1]) {
-      overlappingZone = [toLineEnds[0], Math.min(toLineEnds[1], fromLineEnds[1])];
-    }
-    else if (fromLineEnds[0] <= toLineEnds[1] && toLineEnds[1] <= fromLineEnds[1]){
-      overlappingZone = [fromLineEnds[0], toLineEnds[1]];
-    }
-    else if (toLineEnds[0] <= fromLineEnds[0] && fromLineEnds[1] <= toLineEnds[1]) {
-      overlappingZone = fromLineEnds;
-    }
-
-    if (overlappingZone[0] !== null) {
-      let overlap = overlappingZone[1]! - overlappingZone[0] + 1;
-      let toOverlap = overlap / (toLineEnds[1] - toLineEnds[0] + 1);
-      let fromOverlap = overlap / (fromLineEnds[1] - fromLineEnds[0] + 1);
-      toLineMiddle = (overlappingZone[0] + overlappingZone[1]!) / 2;
-      fromLineMiddle = toLineMiddle;
-    }
-
-    let fromPoint: CoordsOrArray = [fromLineMiddle, fromLineMiddle];
-    let toPoint: CoordsOrArray = [toLineMiddle, toLineMiddle];
-    let middle = 0;
-    let middleCoords: CoordsOrArray = [];
-
-    if (fromLineY !== null && toLineY !== null) {
-      // two horizontal lines
-      fromPoint[1] = fromLineY;
-      toPoint[1] = toLineY;
-      middle = (fromLineY + toLineY) / 2;
-      middleCoords = [[fromLineMiddle, middle], [toLineMiddle, middle]];
-    }
-    else if (fromLineX !== null && toLineX !== null) {
-      // two vertical lines
-      fromPoint[0] = fromLineX;
-      toPoint[0] = toLineX;
-      middle = (fromLineX + toLineX) / 2;
-      middleCoords = [[middle, fromLineMiddle], [middle, toLineMiddle]];
-    }
-    else if (fromLineY !== null && toLineX !== null) {
-      // horizontal "from" line, vertical "to" line
-      fromPoint[1] = fromLineY;
-      toPoint[0] = toLineX;
-      middleCoords = [[fromLineMiddle, toLineMiddle]];
-    }
-    else if (fromLineX !== null && toLineY !== null){
-      // vertical "from" line, horizontal "to" line
-      fromPoint[0] = fromLineX;
-      toPoint[1] = toLineY;
-      middleCoords = [[toLineMiddle, fromLineMiddle]];
-    }
-    else {
-      throw new Error(`Impossible case: neither horizontal nor vertical line.
-       fromLineX = ${fromLineX}
-       toLineX = ${toLineX}
-       fromLineY = ${fromLineY}
-       toLineY = ${toLineY}`);
-    }
-
-
-    coords = [fromPoint, fromCoords!, ...middleCoords, toPoint, toCoords!];
   }
   return coords;
 }

@@ -1,10 +1,15 @@
 Étapes principales
 ––––––––––––––––––
 
+Visuel
+¯¯¯¯¯¯
+Griser les tuiles interdites en mode flèche
+Tuiles plus foncées en mode édition
+
 Flèches à branches
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Corriger les défauts montrés dans mes captures d'écran
-Rendre le tracé complètement opaque
+Bouton de suppression
 Si une tuile est supprimée, retirer seulement une branche si possible
 Corriger le clignotement en changeant le type de mouseTarget et mousePosition
 
@@ -15,17 +20,22 @@ Flèche NOT
 Flèche AND
 Flèche OR
 
-Board
-¯¯¯¯¯
-Permettre de zoomer et de dézoomer
-Empêcher d'en sortir
-L'agrandir lorsque l'utilisateur arrive au bord
-
 Base de données
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Changer le backend
 "Undo" button
 Import / export
+
+Expérience utilisateur
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Indications pour placer les flèches à branches
+Clic simple dans le vide pour passer de "from" à "to"
+
+Board
+¯¯¯¯¯
+Permettre de zoomer et de dézoomer
+Empêcher d'en sortir
+L'agrandir lorsque l'utilisateur arrive au bord
 
 Calcul déductif
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -67,6 +77,8 @@ Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules 
 Regarder comment mettre React à jour
 
 Gérer le reset des z-values côté backend.
+
+Mieux organiser les conditions dans calculateArrowCoords, dans arrowFunctions.ts
 
 
 Améliorations graphiques

@@ -11,48 +11,156 @@
         5
       ],
       "id": 1
+    },
+    {
+      "tilesFrom": [
+        6
+      ],
+      "tilesTo": [
+        7,
+        8
+      ],
+      "operator1": "",
+      "operator2": "",
+      "id": 2
+    },
+    {
+      "tilesFrom": [
+        14,
+        12
+      ],
+      "tilesTo": [
+        13
+      ],
+      "operator1": "",
+      "operator2": "",
+      "id": 3
+    },
+    {
+      "tilesFrom": [
+        16
+      ],
+      "tilesTo": [
+        15,
+        17
+      ],
+      "operator1": "",
+      "operator2": "",
+      "id": 4
     }
   ],
   "tiles": [
     {
       "text": "",
       "truthValue": null,
-      "x": 1117,
-      "y": 509,
-      "z": 25,
+      "x": 933,
+      "y": 324,
+      "z": 143,
       "id": 1
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 1072,
-      "y": 308,
-      "z": 38,
+      "x": 894,
+      "y": 190,
+      "z": 144,
       "id": 2
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 233,
-      "y": 553,
-      "z": 30,
+      "x": 190,
+      "y": 518,
+      "z": 147,
       "id": 3
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 579,
-      "y": 732,
-      "z": 37,
+      "x": 531,
+      "y": 790,
+      "z": 145,
       "id": 4
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 363,
-      "y": 726,
-      "z": 36,
+      "x": 344,
+      "y": 675,
+      "z": 146,
       "id": 5
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 843,
+      "y": 709,
+      "z": 142,
+      "id": 6
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 1205,
+      "y": 643,
+      "z": 148,
+      "id": 7
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 1167,
+      "y": 852,
+      "z": 141,
+      "id": 8
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 1643,
+      "y": 289,
+      "z": 137,
+      "id": 12
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 1541,
+      "y": 855,
+      "z": 139,
+      "id": 13
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 1291,
+      "y": 217,
+      "z": 138,
+      "id": 14
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 699,
+      "y": 449,
+      "z": 156,
+      "id": 15
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 934,
+      "y": 500,
+      "z": 154,
+      "id": 16
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 1273,
+      "y": 484,
+      "z": 157,
+      "id": 17
     }
   ]
 }
