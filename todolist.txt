@@ -3,7 +3,6 @@
 
 Flèches à branches
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Corriger les défauts montrés dans mes captures d'écran
 Bouton de suppression
 Si une tuile est supprimée, retirer seulement une branche si possible
 Corriger le clignotement en changeant le type de mouseTarget et mousePosition
@@ -98,6 +97,8 @@ Améliorations de l'expérience utilisateur
 ECHAP pour quitter le mode texte
 
 Les tuiles déjà reliées par une flèche sont grisées dans le mode de positionnement de flèche, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier.
+
+Sélection rectangulaire
 
 
 Fonctionnalités futures
