@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getArrowHitbox, getButtonBox } from './arrowFunctions';
+import { getArrowHitbox } from './arrowFunctions';
 import * as coordTypes from '../coordTypes'
 
 
@@ -13,16 +13,18 @@ export default function ArrowComponent(props: any) {
     = props.deleteArrow;
 
 
-  const [hitbox, setHitbox] = useState([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+  const [hitbox, setHitbox] = useState<[coordTypes.DoubleCoords, coordTypes.DoubleCoords, coordTypes.DoubleCoords]>([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
     // The arrow can be covered with three rectangles. These are their coordinates and sizes: [x, y, w, h].
 
-  const [buttonBox, setButtonBox] = useState([0, 0, 0, 0])
+  const [deleteButtonCoords, setButtonBox] = useState<coordTypes.Coords>([0, 0])
     // Hitbox of the delete button which appears when the cursor is on the arrow.
+  
+  const buttonSize = 44;
 
   useEffect(() => {
     if (arrow && arrow.coords) {
       setHitbox(getArrowHitbox(arrow.coords));
-      setButtonBox(getButtonBox(arrow.coords));
+      setButtonBox(arrow.deleteButtonCoords);
     }
   }, [arrow]);
 
@@ -45,15 +47,15 @@ export default function ArrowComponent(props: any) {
         >
         </div>
       )}
-      {arrow.highlight && <button
+      {/*arrow.highlight && */<button
         className="DeleteArrow"
         style = {{
           position: 'absolute',
-          left: buttonBox[0],
-          top: buttonBox[1],
-          width: buttonBox[2],
-          height: buttonBox[2],
-          borderRadius: buttonBox[2],
+          left: deleteButtonCoords[0] - buttonSize/2,
+          top: deleteButtonCoords[1] - buttonSize/2,
+          width: buttonSize,
+          height: buttonSize,
+          borderRadius: buttonSize,
 
           backgroundColor: 'white',
           border: '1px solid white',

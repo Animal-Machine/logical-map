@@ -39,7 +39,24 @@ let b: recursiveNumber = 3;
 let c: recursiveNumber = [1, 2, [3, 4]];
 
 export interface ArrowCoords {
-  coords: DoubleCoords | CoordsOrArray[];
-  highlight: boolean;
   id: number;
+  coords: DoubleCoords | CoordsOrArray[];
+  deleteButtonCoords: Coords;
+  highlight: boolean;
+}
+
+export function meanCoords(coords: Coords[], weights: number[] = []) {
+  // weighted mean between elements of type Coords
+  let coordSum: Coords = [0, 0];
+  let defaultWeight = 1/coords.length;
+    for (let i = 0; i < coords.length; i++) {
+      let w = (i < weights.length) ? weights[i] : defaultWeight;
+      coordSum[0] += w * coords[i][0];
+      coordSum[1] += w * coords[i][1];
+    }
+  return coordSum;
+}
+
+export function distInfCoords(a: Coords, b: Coords) {
+  return Math.max(Math.abs(a[0]-b[0]), Math.abs(a[1]-b[1]));
 }

@@ -249,9 +249,9 @@ function BoardComponent(props: any) {
           });
         }
 
-        let coords: DoubleCoords | CoordsOrArray[] = calculateArrowCoords({tilesFrom: tilesFrom, tilesTo: tilesTo});
+        let [coords, deleteButtonCoords]: [DoubleCoords | CoordsOrArray[], Coords] = calculateArrowCoords({tilesFrom: tilesFrom, tilesTo: tilesTo});
 
-        return {id: a.id, coords: coords, highlight: false};
+        return {id: a.id, coords: coords, deleteButtonCoords: deleteButtonCoords, highlight: false};
       }
       catch(err) {console.error(err)}
 
@@ -325,7 +325,7 @@ function BoardComponent(props: any) {
         drawArrow(ctx, calculateArrowCoords({
           tilesFrom: tFrom,
           tilesTo: tTo,
-        }));
+        })[0]);
       }
       ctx.stroke();
       ctx.closePath();
