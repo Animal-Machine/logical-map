@@ -40,7 +40,7 @@ let c: recursiveNumber = [1, 2, [3, 4]];
 
 export interface ArrowCoords {
   id: number;
-  coords: DoubleCoords | CoordsOrArray[];
+  coords: CoordsOrArray[];
   deleteButtonCoords: Coords;
   highlight: boolean;
 }

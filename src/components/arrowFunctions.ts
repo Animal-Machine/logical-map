@@ -2,9 +2,14 @@ import { Point, Rectangle, PointOrRectangle, Coords, isCoords, DoubleCoords, isD
 
 
 
-export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle[], tilesTo: Rectangle[]}): [DoubleCoords | CoordsOrArray[], Coords] {
+function extractEnds(tiles: Rectangle[], isVertical: boolean): Coords {
+  const T = tiles.map((t: Rectangle): number => isVertical ? t.y+t.h/2 : t.x+t.w/2);
+  return [Math.min(...T), Math.max(...T)];
+}
 
-  let coords: DoubleCoords | CoordsOrArray[] = [];
+export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle[], tilesTo: Rectangle[]}): [CoordsOrArray[], Coords] {
+
+  let coords: CoordsOrArray[] = [];
   let deleteButtonCoords: Coords = [0, 0];
 
   // Functions used to calculate means and deviations
@@ -18,14 +23,10 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
     }
   }
 
-  if (tilesFrom.length === 1 && tilesTo.length === 1) {
-    coords = calculateArrowEnds(tilesFrom[0], tilesTo[0]);
-    const [ x1, y1, x3, y3 ] = coords;
-    deleteButtonCoords = [(x1+x3)/2, (y1+y3)/2];
-  }
-  else if (tilesFrom.length === 0 && tilesTo.length > 0) {
+
+  if (tilesFrom.length === 0 && tilesTo.length > 0) {
     throw new Error("The arrow must start from somewhere.");
-    coords = [0, 0, 0, 0];
+    coords = [];
   }
   else {
 
@@ -63,10 +64,17 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
 
 
     // booleans indicating tile distribution
+    // (a positive sd ratio difference means tiles are more scattered among x than among y, negative means the opposite)
     const fromLineIsVertical = fromSD[0]/fromSD[1] - fromSD[1]/fromSD[0] < 0;
     const toLineIsVertical = toSD[0]/toSD[1] - toSD[1]/toSD[0] < 0;
+    const fromLineIsHorizontal = fromSD[0]/fromSD[1] - fromSD[1]/fromSD[0] >= 0;
+    const toLineIsHorizontal = toSD[0]/toSD[1] - toSD[1]/toSD[0] >= 0;
+      // When there is only one tile at one side, sd = 0 so the ratio = NaN
+      // In this case, both booleans are false.
+      // This can also occur if tiles are stacked at the same position.
     const globalLineIsVertical = allSD[0]/allSD[1] - allSD[1]/allSD[0] < 0;
-    // a positive sd ratio difference means tiles are more scattered among x than among y, negative means the opposite
+      // There cannot be only one tile in total, so globalLineIsHorizontal ~ !globalLineIsVertical
+      // All the tiles can be at the same position but the code does not deal with this case.
 
 
     const d1 = 30; // minimum distance from tile to line
@@ -82,6 +90,7 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
     const toRight  = Math.max(...tilesTo.map((t: Rectangle): number => t.x + t.w)) + d1;
     const toLeft   = Math.min(...tilesTo.map((t: Rectangle): number => t.x      )) - d1;
 
+    // reunion lines: lines linked with all "from" or "to" tiles when they are more than one
     let fromLineX:  number|null = null;
     let toLineX:    number|null = null;
     let fromLineY:  number|null = null;
@@ -92,7 +101,10 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
     let sameY = false;
     let sameX = false;
 
-    // final coordinates of vertices
+
+    /// Step 1: determining the reunion lines coordinates by comparing the relative positions of "from" and "to" groups of tiles
+
+    /// First part: cases with different abscissae and ordinates for the two groups
 
     if (tilesTo.length) {
 
@@ -100,12 +112,12 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
       if (fromBottom < toTop) {
         // if "from" tiles are above all "to" tiles:
         // lines below "from" tiles and above "to" tiles
-        if (!fromLineIsVertical) {
+        if (fromLineIsHorizontal) {
           // horizontal "from" line
           fromLineY = fromBottom;
           fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h]]);
         }
-        if (!toLineIsVertical) {
+        if (toLineIsHorizontal) {
           // horizontal "to" line
           toLineY = toTop;
           toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]);
@@ -114,11 +126,11 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
       else if (fromTop > toBottom) {
         // if "from" tiles are below all "to" tiles:
         // lines above "from" tiles and below "to" tiles
-        if (!fromLineIsVertical) {
+        if (fromLineIsHorizontal) {
           fromLineY = fromTop;
           fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y]]);
         }
-        if (!toLineIsVertical) {
+        if (toLineIsHorizontal) {
           toLineY = toBottom;
           toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, toLineY!], [t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]);
         }
@@ -152,25 +164,19 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
       }
       else { sameX = true; }
 
-      let parallelLines = false;
-      let commonHorizontalLine = false;
-      let commonVerticalLine = false;
 
-      let fromLineEnds: Coords;
-      let toLineEnds: Coords;
-      (() => {
-        function extractEnds(tiles: Rectangle[], isVertical: boolean): Coords {
-          const T = tiles.map((t: Rectangle): number => isVertical ? t.y+t.h/2 : t.x+t.w/2);
-          return [Math.min(...T), Math.max(...T)];
-        }
-        fromLineEnds = extractEnds(tilesFrom, fromLineIsVertical);
-        toLineEnds = extractEnds(tilesTo, toLineIsVertical);
-      })();
+      /// Step 1, second part: dealing with the cases where the two groups have the same abscissa and/or ordinate
 
+      const fromLineEnds = extractEnds(tilesFrom, fromLineIsVertical);
+      const toLineEnds   = extractEnds(tilesTo,     toLineIsVertical);
       const fromLineMiddle = (fromLineEnds[0] + fromLineEnds[1]) / 2;
-      const toLineMiddle = (toLineEnds[0] + toLineEnds[1]) / 2;
+      const toLineMiddle   = (  toLineEnds[0] +   toLineEnds[1]) / 2;
+
+      let parallelLines        = false;
+      let commonHorizontalLine = false;
+      let commonVerticalLine   = false;
       let fromLineJunction = fromLineMiddle;
-      let toLineJunction = toLineMiddle;
+      let toLineJunction   = toLineMiddle;
 
       if (sameX && sameY) {
         // if the "from" and "to" frames overlap each other:
@@ -179,7 +185,8 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
         else { commonHorizontalLine = true; }
       }
       else if (sameX) {
-        if (fromLineIsVertical && toLineIsVertical) { commonVerticalLine = true; }
+        // Note that this is NOT equivalent to (fromLineIsVertical && toLineIsVertical): it works when there is only one "from" tile XOR "to" tile
+        if ((!fromLineIsHorizontal && toLineIsVertical) || (fromLineIsVertical && !toLineIsHorizontal)) { commonVerticalLine = true; }
           // if "from" and "two" tiles are both spread along a vertical axis:
           // common vertical line for "from" and "to" tiles
         else if (fromLineIsVertical) {
@@ -242,10 +249,10 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
         }
       }
       else if (sameY) {
-        if (!fromLineIsVertical && !toLineIsVertical) { commonHorizontalLine = true; }
+        if ((!fromLineIsVertical && toLineIsHorizontal) || (fromLineIsHorizontal && !toLineIsVertical)) { commonHorizontalLine = true; }
           // if "from" and "two" tiles are already spread along a horizontal axis:
           // common horizontal line for "from" and "to" tiles
-        else if (!fromLineIsVertical) {
+        else if (fromLineIsHorizontal) {
           // horizontal "from" line and vertical "to" line
           let topBetween = (toLineEnds[0] <= fromTop && fromTop <= toLineEnds[1]);
           let bottomBetween = (toLineEnds[0] <= fromBottom && fromBottom <= toLineEnds[1]);
@@ -272,7 +279,7 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
           }
           toLineJunction = fromLineY;
         }
-        else if (!toLineIsVertical) {
+        else if (toLineIsHorizontal) {
           // vertical "from" line and horizontal "to" line
           let topBetween = (fromLineEnds[0] <= toTop && toTop <= fromLineEnds[1]);
           let bottomBetween = (fromLineEnds[0] <= toBottom && toBottom <= fromLineEnds[1]);
@@ -305,22 +312,36 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
         }
       }
 
+
+      /// Step 2: calculating coordinates of the path between the two lines, and final coordinates
+
+
+      /// Cases of common line: end of step 1 and final coordinates directly
+
+      if (commonVerticalLine && commonHorizontalLine) { throw new Error("Common line cannot be both horizontal and vertical."); }
+      const commonLineEnds = extractEnds(tilesAll, commonVerticalLine);
+      const commonLineMiddle = (commonLineEnds[0] + commonLineEnds[1]) / 2;
+
       if (commonVerticalLine) {
         fromLineX = Math.max(fromRight, toRight); // right by default
         fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2]]);
         toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[fromLineX!, t.y + t.h/2], [t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]);
         coords = [fromCoords[0][0] as Coords, fromCoords.concat(toCoords)];
-        deleteButtonCoords = [fromLineX, fromLineMiddle];
+        deleteButtonCoords = [fromLineX, commonLineMiddle];
       }
       else if (commonHorizontalLine) {
         fromLineY = Math.max(fromBottom, toBottom); // bottom by default
         fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h]]);
         toCoords = tilesTo.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]);
         coords = [fromCoords[0][0] as Coords, fromCoords.concat(toCoords)];
-        deleteButtonCoords = [fromLineMiddle, fromLineY];
+        let commonLineMiddle = (Math.min(fromLineEnds[0], toLineEnds[0]) + Math.max(fromLineEnds[1], toLineEnds[1])) / 2;
+        deleteButtonCoords = [commonLineMiddle, fromLineY];
       }
+
+
       else {
-        // coordinates in the middle
+
+        /// Coordinates of the center path
 
         if (parallelLines) {
           let overlappingZone: [number|null, number|null] = [null, null]
@@ -343,50 +364,53 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
           }
         }
 
-        let fromPoint: CoordsOrArray = [fromLineJunction, fromLineJunction];
-        let toPoint: CoordsOrArray = [toLineJunction, toLineJunction];
-          // temporary values: for example, if fromLineIsVertical, fromPoint[0] will be replaced
+        let fromJunctionPoint: Coords = [fromLineJunction, fromLineJunction];
+        let toJunctionPoint:   Coords = [toLineJunction,   toLineJunction];
+          // temporary values: for example, if fromLineIsVertical, fromJunctionPoint[0] will be replaced
 
-        let middle = 0;
-        let joiningCoords: CoordsOrArray = [];
+        let center = 0;
+        let centerPathCoords: CoordsOrArray = [];
 
         if (fromLineIsVertical) {
           if (fromLineX === null) { throw new Error("Missing value for fromLineX."); }
-        } else {
+        } else if (fromLineIsHorizontal) {
           if (fromLineY === null) { throw new Error("Missing value for fromLineY."); }
         }
         if (toLineIsVertical) {
           if (toLineX === null) { throw new Error("Missing value for toLineX."); }
-        } else {
+        } else if (toLineIsHorizontal) {
           if (toLineY === null) { throw new Error("Missing value for toLineY."); }
         }
 
+        /// Case 1: more than one tile in both "from" and "to" groups
+
         if (tilesFrom.length > 1 && tilesTo.length > 1) {
+
           if (fromLineY !== null && toLineY !== null) {
             // two horizontal lines
-            fromPoint[1] = fromLineY;
-            toPoint[1] = toLineY;
-            middle = (fromLineY + toLineY) / 2;
-            joiningCoords = [[fromLineJunction, middle], [toLineJunction, middle]];
+            fromJunctionPoint[1] = fromLineY;
+            toJunctionPoint[1] = toLineY;
+            center = (fromLineY + toLineY) / 2;
+            centerPathCoords = [[fromLineJunction, center], [toLineJunction, center]];
           }
           else if (fromLineX !== null && toLineX !== null) {
             // two vertical lines
-            fromPoint[0] = fromLineX;
-            toPoint[0] = toLineX;
-            middle = (fromLineX + toLineX) / 2;
-            joiningCoords = [[middle, fromLineJunction], [middle, toLineJunction]];
+            fromJunctionPoint[0] = fromLineX;
+            toJunctionPoint[0] = toLineX;
+            center = (fromLineX + toLineX) / 2;
+            centerPathCoords = [[center, fromLineJunction], [center, toLineJunction]];
           }
           else if (fromLineY !== null && toLineX !== null) {
             // horizontal "from" line, vertical "to" line
-            fromPoint[1] = fromLineY;
-            toPoint[0] = toLineX;
-            joiningCoords = [[fromLineJunction, toLineJunction]];
+            fromJunctionPoint[1] = fromLineY;
+            toJunctionPoint[0] = toLineX;
+            centerPathCoords = [[fromLineJunction, toLineJunction]];
           }
           else if (fromLineX !== null && toLineY !== null){
             // vertical "from" line, horizontal "to" line
-            fromPoint[0] = fromLineX;
-            toPoint[1] = toLineY;
-            joiningCoords = [[toLineJunction, fromLineJunction]];
+            fromJunctionPoint[0] = fromLineX;
+            toJunctionPoint[1] = toLineY;
+            centerPathCoords = [[toLineJunction, fromLineJunction]];
           }
           else {
             throw new Error(`Impossible case: neither horizontal nor vertical line.
@@ -395,56 +419,103 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
              fromLineY = ${fromLineY}
              toLineY = ${toLineY}`);
           }
-          fromCoords = [fromPoint, fromCoords];
-          toCoords = [toPoint, toCoords];
+          fromCoords = [fromJunctionPoint, fromCoords];
+          toCoords = [toJunctionPoint, toCoords];
         }
+
+        /// Case 2: one "from" tile, one "to" tile
+
+        else if (tilesFrom.length === 1 && tilesTo.length === 1) {
+          // if there is only one "from" and one "to" tiles
+          const f = tilesFrom[0];
+          const t = tilesTo[0];
+          // Centers of mass:
+          const fG: Coords = [f.x + f.w/2, f.y + f.h/2];
+          const tG: Coords = [t.x + t.w/2, t.y + t.h/2];
+
+          if (sameX) {
+            if (fG[1] < tG[1]) {
+              fromCoords = [[fG[0], f.y + f.h]];
+              toCoords   = [[tG[0], t.y], [[tG[0] - d2, t.y - d2], [tG[0] + d2, t.y - d2]]];
+            } else {
+              fromCoords = [[fG[0], f.y]];
+              toCoords   = [[tG[0], t.y + t.h], [[tG[0] - d2, t.y + t.h + d2], [tG[0] + d2, t.y + t.h + d2]]];
+            }
+            center = (fromCoords[0][1] as number + (toCoords[0][1] as number)) / 2;
+            centerPathCoords = [[fG[0], center], [tG[0], center]];
+          }
+          else if (sameY) {
+            if (fG[0] < tG[0]) {
+              fromCoords = [[f.x + f.w, fG[1]]];
+              toCoords   = [[t.x, tG[1]], [[t.x - d2, tG[1] - d2], [t.x - d2, tG[1] + d2]]];
+            } else {
+              fromCoords = [[f.x, fG[1]]];
+              toCoords   = [[t.x + t.w, tG[1]], [[t.x + t.w + d2, tG[1] - d2], [t.x + t.w + d2, tG[1] + d2]]];
+            }
+            center = (fromCoords[0][0] as number + (toCoords[0][0] as number)) / 2;
+            centerPathCoords = [[center, fG[1]], [center, tG[1]]];
+          }
+          else {
+            fromCoords       = [[f.x,   fG[1]]];
+            toCoords         = [[tG[0], t.y  ], []];
+            centerPathCoords = [[tG[0], fG[1]]];
+              // abscissa of "to" and ordinate of "from" by default (it could be the opposite)
+              // consequence: the arrow tip can only point upwards or downwards (and the other end only leftwards or rightwards)
+            fromCoords = fG[0] < tG[0] ? [[f.x + f.w, fG[1]]]
+                                       : [[f.x,       fG[1]]];
+            toCoords   = tG[1] < fG[1] ? [[tG[0], t.y + t.h], [[tG[0] - d2, t.y + t.h + d2], [tG[0] + d2, t.y + t.h + d2]]]
+                                       : [[tG[0], t.y],       [[tG[0] - d2, t.y - d2],       [tG[0] + d2, t.y - d2]]];
+          }
+        }
+
+        /// Case 3: one "from" tile, several "to" tiles
 
         else if (tilesFrom.length === 1) {
           // if there is only one "from" tile
           let t = tilesFrom[0];
           if (toLineX !== null) {
             // vertical line
-            toPoint[0] = toLineX;
+            toJunctionPoint[0] = toLineX;
             if (toLineEnds[0] <= t.y + t.h/2 && t.y + t.h/2 <= toLineEnds[1]) {
               // if the center of the "from" tile is between the ordinates of the "to" line ends:
               // single horizontal line
-              toPoint[1] = t.y + t.h/2;
+              toJunctionPoint[1] = t.y + t.h/2;
               if (toLineX < t.x) { fromCoords = [[t.x, t.y + t.h/2]]; } // if it is to the left of the line
               else if (t.x + t.w < toLineX) { fromCoords = [[t.x + t.w, t.y + t.h/2]]; } // if it is to the right of the line
               else { throw new Error("This shouldn't be happening."); }
             }
             else if (Math.abs(t.x + t.w/2 - toLineX) > Math.abs(t.y + t.h/2 - toLineJunction)) {
               // if the center of the "from" tile is closer to the "to" line abscissa than to the junction ordinate:
-              middle = (toLineX + t.x) / 2;
-              joiningCoords = [[middle, t.y + t.h/2], [middle, toLineJunction]];
+              center = (toLineX + t.x) / 2;
+              centerPathCoords = [[center, t.y + t.h/2], [center, toLineJunction]];
               if (toLineX < t.x) { fromCoords = [[t.x, t.y + t.h/2]]; }
               else if (t.x + t.w < toLineX) { fromCoords = [[t.x + t.w, t.y + t.h/2]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else {
-              joiningCoords = [[t.x + t.w/2, toLineJunction]];
+              centerPathCoords = [[t.x + t.w/2, toLineJunction]];
               if (toLineJunction < t.y) { fromCoords = [[t.x + t.w/2, t.y]]; }
               else { fromCoords = [[t.x + t.w/2, t.y + t.h]]; }
             }
           }
           else if (toLineY !== null) {
             // horizontal line
-            toPoint[1] = toLineY;
+            toJunctionPoint[1] = toLineY;
             if (toLineEnds[0] <= t.x + t.w/2 && t.x + t.w/2 <= toLineEnds[1]) {
-              toPoint[0] = t.x + t.w/2;
+              toJunctionPoint[0] = t.x + t.w/2;
               if (toLineY < t.y) { fromCoords = [[t.x + t.w/2, t.y]]; }
               else if (t.y + t.h < toLineY) { fromCoords = [[t.x + t.w/2, t.y + t.h]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else if (Math.abs(t.y + t.h/2 - toLineY) > Math.abs(t.x + t.w/2 - toLineJunction)) {
-              middle = (toLineY + t.y) / 2;
-              joiningCoords = [[t.x + t.w/2, middle], [toLineJunction, middle]];
+              center = (toLineY + t.y) / 2;
+              centerPathCoords = [[t.x + t.w/2, center], [toLineJunction, center]];
               if (toLineY < t.y) { fromCoords = [[t.x + t.w/2, t.y]]; }
               else if (t.y + t.h < toLineY) { fromCoords = [[t.x + t.w/2, t.y + t.h]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else {
-              joiningCoords = [[toLineJunction, t.y + t.h/2]];
+              centerPathCoords = [[toLineJunction, t.y + t.h/2]];
               if (toLineJunction < t.x) { fromCoords = [[t.x, t.y + t.h/2]]; }
               else { fromCoords = [[t.x + t.w, t.y + t.h/2]]; }
             }
@@ -454,53 +525,55 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
              toLineX = ${toLineX}
              toLineY = ${toLineY}`);
           }
-          toCoords = [toPoint, toCoords];
+          toCoords = [toJunctionPoint, toCoords];
         }
+
+        /// Case 4: one "from" tile, several "to" tiles
 
         else {
           // if there is only one "to" tile
-          // (same structure as the previous block, TODO: generalize?)
+          // (same structure as the previous block)
           let t = tilesTo[0];
           if (fromLineX !== null) {
             // vertical line
-            fromPoint[0] = fromLineX;
+            fromJunctionPoint[0] = fromLineX;
             if (fromLineEnds[0] <= t.y + t.h/2 && t.y + t.h/2 <= fromLineEnds[1]) {
-              fromPoint[1] = t.y + t.h/2;
+              fromJunctionPoint[1] = t.y + t.h/2;
               if (fromLineX < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
               else if (t.x + t.w < fromLineX) { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else if (Math.abs(t.x + t.w/2 - fromLineX) > Math.abs(t.y + t.h/2 - fromLineJunction)) {
-              middle = (fromLineX + t.x) / 2;
-              joiningCoords = [[middle, fromLineJunction], [middle, t.y + t.h/2]];
+              center = (fromLineX + t.x) / 2;
+              centerPathCoords = [[center, fromLineJunction], [center, t.y + t.h/2]];
               if (fromLineX < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
               else if (t.x + t.w < fromLineX) { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else {
-              joiningCoords = [[t.x + t.w/2, fromLineJunction]];
+              centerPathCoords = [[t.x + t.w/2, fromLineJunction]];
               if (fromLineJunction < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
               else { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
             }
           }
           else if (fromLineY !== null) {
             // horizontal line
-            fromPoint[1] = fromLineY;
+            fromJunctionPoint[1] = fromLineY;
             if (fromLineEnds[0] <= t.x + t.w/2 && t.x + t.w/2 <= fromLineEnds[1]) {
-              fromPoint[0] = t.x + t.w/2;
+              fromJunctionPoint[0] = t.x + t.w/2;
               if (fromLineY < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
               else if (t.y + t.h < fromLineY) { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else if (Math.abs(t.y + t.h/2 - fromLineY) > Math.abs(t.x + t.w/2 - fromLineJunction)) {
-              middle = (fromLineY + t.y) / 2;
-              joiningCoords = [[fromLineJunction, middle], [t.x + t.w/2, middle]];
+              center = (fromLineY + t.y) / 2;
+              centerPathCoords = [[fromLineJunction, center], [t.x + t.w/2, center]];
               if (fromLineY < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
               else if (t.y + t.h < fromLineY) { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else {
-              joiningCoords = [[fromLineJunction, t.y + t.h/2]];
+              centerPathCoords = [[fromLineJunction, t.y + t.h/2]];
               if (fromLineJunction < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
               else { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
             }
@@ -510,7 +583,7 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
              fromLineX = ${fromLineX}
              fromLineY = ${fromLineY}`);
           }
-          fromCoords = [fromPoint, fromCoords];
+          fromCoords = [fromJunctionPoint, fromCoords];
         }
 
         if (!isCoords(fromCoords[0]) || !isCoords(toCoords[0])) {
@@ -519,12 +592,12 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
           // This is required by drawAcyclicGraph and also by distInfCoords (Typescript which refuses
           // to compile without this block of code because of the latter).
         }
-        if ((joiningCoords.length === 1 || joiningCoords.length === 2) && isCoords(joiningCoords[0])) {
-          if (joiningCoords.length === 1) {
+        if ((centerPathCoords.length === 1 || centerPathCoords.length === 2) && isCoords(centerPathCoords[0])) {
+          if (centerPathCoords.length === 1) {
             // If the joining branch is in a "L" shape, the delete button will be placed at the middle
             // of the global path and not at the corner of the "L".
             const f = fromCoords[0];
-            const j = joiningCoords[0];
+            const j = centerPathCoords[0];
             const t = toCoords[0];
             const dFJ = distInfCoords(f, j);
             const dTJ = distInfCoords(t, j);
@@ -535,17 +608,17 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
               deleteButtonCoords = meanCoords([t, j], [1-m/dTJ, m/dTJ]);
             }
           }
-          else if (isCoords(joiningCoords[1])) { deleteButtonCoords = meanCoords(joiningCoords as Coords[]); }
-          else { throw new Error("Cannot place delete button because joiningCoords[1] is not of type Coords."); }
+          else if (isCoords(centerPathCoords[1])) { deleteButtonCoords = meanCoords(centerPathCoords as Coords[]); }
+          else { throw new Error("Cannot place delete button because centerPathCoords[1] is not of type Coords."); }
         }
-        else if (joiningCoords.length === 0 ) {
+        else if (centerPathCoords.length === 0 ) {
           deleteButtonCoords = meanCoords([fromCoords[0], toCoords[0]]);
         }
         else {
-          throw new Error("Cannot place delete button because of joiningCoords wrong format.");
+          throw new Error("Cannot place delete button because of centerPathCoords wrong format.");
         }
 
-        coords = [...fromCoords, ...joiningCoords, ...toCoords];
+        coords = [...fromCoords, ...centerPathCoords, ...toCoords];
       }
     }
 
@@ -560,57 +633,11 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
         fromCoords = tilesFrom.map((t: Rectangle): CoordsOrArray => [[t.x + t.w/2, fromLineY!], [t.x + t.w/2, t.y + t.h]]);
       }
       coords = [fromCoords[0][0] as Coords, fromCoords!];
+      // no deleteButtonCoords in this case
     }
 
   }
   return [coords, deleteButtonCoords];
-}
-
-
-function calculateArrowEnds({ x, y, w, h }: Rectangle, { x:X, y:Y, w:W, h:H }: PointOrRectangle): DoubleCoords {
-// the first argument represents a tile position and dimensions,
-// the second one represents either another tile or the mouse pointer position
-// (so W and H can be undefined)
-
-  if (y < Y) { y += h; } else { if (H) {Y += H} }
-    // connects the bottom border of the tile above to the top border of the other tile
-
-  x = Math.round(x + w/2);
-  if (W) {X = Math.round(X + W/2)}
-    // the arrow joins the tiles at the center of their borders
-
-  return [x, y, X, Y];
-}
-
-
-
-export function drawArrow(ctx: CanvasRenderingContext2D, coords: DoubleCoords | CoordsOrArray[]) {
-  if (isDoubleCoords(coords)) {
-    drawSimpleArrow(ctx, coords);
-  } else {
-    drawBranchedArrow(ctx, coords);
-  }
-}
-
-
-function drawBranchedArrow(ctx: CanvasRenderingContext2D, coords: CoordsOrArray[]) {
-  drawAcyclicGraph(ctx, coords);
-}
-
-
-function drawSimpleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
-// Draws a simple arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
-
-  // Shaft
-  let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
-  drawAcyclicGraph(ctx, [[x1, y1], [x1, y2], [x3, y2], [x3, y3]]);
-
-  // Tip
-  let w = 8; // width of the arrow tip
-  w = y1<y3 ? w : -w;
-  ctx.moveTo(x3-2*w, y3-2*w);
-  ctx.lineTo(x3, y3);
-  ctx.lineTo(x3+2*w, y3-2*w);
 }
 
 
@@ -673,36 +700,6 @@ export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: Coords
 
   traceChain(vertices);
 
-}
-
-
-
-// Unused for now:
-
-export function drawDoubleArrow(ctx: CanvasRenderingContext2D, [ x1, y1, x3, y3 ]: DoubleCoords) {
-// Draws a double arrow in the canvas context "ctx" from (x1, y1) to (x3, y3)
-
-  let y2 = Math.round((y1 + y3) / 2); // where the arrow turns
-  let t = 8; // thickness (half the space between the two lines)
-  let s = (x1-x3)*(y1-y3)>0 ? t : -t; // shift (used at arrow corners)
-  let c = y1<y3 ? t : -t; // cut (used at the arrow's head)
-
-  // First line
-  ctx.moveTo(x1-t, y1);
-  ctx.lineTo(x1-t, y2+s);
-  ctx.lineTo(x3-t, y2+s);
-  ctx.lineTo(x3-t, y3-c);
-
-  // Second line
-  ctx.moveTo(x1+t, y1);
-  ctx.lineTo(x1+t, y2-s);
-  ctx.lineTo(x3+t, y2-s);
-  ctx.lineTo(x3+t, y3-c);
-
-  // Tip
-  ctx.moveTo(x3-2*c, y3-2*c);
-  ctx.lineTo(x3, y3);
-  ctx.lineTo(x3+2*c, y3-2*c);
 }
 
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
-import { calculateArrowCoords, drawArrow, drawAcyclicGraph } from './arrowFunctions';
+import { calculateArrowCoords, drawAcyclicGraph } from './arrowFunctions';
 import { TileXY, TileZ, TileContent, TileDataPart, TileData, Operator, Arrow, Mode, TileSelection, AddArrow } from '../types';
 import { Point, Rectangle, ArrowCoords, Coords, DoubleCoords, CoordsOrArray } from '../coordTypes';
 
@@ -305,8 +305,8 @@ function BoardComponent(props: any) {
       ctx.beginPath();
       for (let i in arrowsCoords) {
         if (arrowsCoords[i].coords) {
-          drawArrow(ctx, arrowsCoords[i].coords)
-          if (arrowsCoords[i].highlight) {drawArrow(ctx, arrowsCoords[i].coords)}
+          drawAcyclicGraph(ctx, arrowsCoords[i].coords)
+          if (arrowsCoords[i].highlight) {drawAcyclicGraph(ctx, arrowsCoords[i].coords)}
         }
       }
       if (['singleArrow', 'branchedArrow1', 'branchedArrow2'].includes(modeState) && tileSelection.tilesFrom.length > 0 && mouseTarget) {
@@ -322,7 +322,7 @@ function BoardComponent(props: any) {
         } else {
           tTo.push(getArrowTip(tAll));
         }
-        drawArrow(ctx, calculateArrowCoords({
+        drawAcyclicGraph(ctx, calculateArrowCoords({
           tilesFrom: tFrom,
           tilesTo: tTo,
         })[0]);

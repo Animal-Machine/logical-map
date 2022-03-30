@@ -92,17 +92,6 @@
     },
     {
       "tilesFrom": [
-        31
-      ],
-      "tilesTo": [
-        32
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 9
-    },
-    {
-      "tilesFrom": [
         33,
         34
       ],
@@ -263,47 +252,94 @@
       "operator1": "",
       "operator2": "",
       "id": 22
+    },
+    {
+      "tilesFrom": [
+        73,
+        75
+      ],
+      "tilesTo": [
+        74
+      ],
+      "operator1": "",
+      "operator2": "",
+      "id": 23
+    },
+    {
+      "tilesFrom": [
+        76,
+        77
+      ],
+      "tilesTo": [
+        78
+      ],
+      "operator1": "",
+      "operator2": "",
+      "id": 24
+    },
+    {
+      "tilesFrom": [
+        80
+      ],
+      "tilesTo": [
+        81,
+        79
+      ],
+      "operator1": "",
+      "operator2": "",
+      "id": 25
+    },
+    {
+      "tilesFrom": [
+        82
+      ],
+      "tilesTo": [
+        32
+      ],
+      "operator1": "",
+      "operator2": "",
+      "id": 26
     }
   ],
   "tiles": [
     {
       "text": "",
       "truthValue": null,
-      "x": 267,
-      "y": 339,
-      "z": 77,
+      "x": 526,
+      "y": 348,
+      "z": 407,
       "id": 1
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 228,
-      "y": 826,
-      "z": 75,
+      "x": 543,
+      "y": 827,
+      "z": 409,
       "id": 2
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 221,
-      "y": 595,
-      "z": 76,
+      "x": 508,
+      "y": 600,
+      "z": 408,
       "id": 3
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 771,
-      "y": 613,
-      "z": 250,
+      "x": 944,
+      "y": 618,
+      "z": 406,
       "id": 4
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 782,
-      "y": 779,
-      "z": 251,
+      "x": 945,
+      "y": 771,
+      "z": 405,
       "id": 5
     },
     {
@@ -349,25 +385,25 @@
     {
       "text": "",
       "truthValue": null,
-      "x": 176,
-      "y": -502,
-      "z": 282,
+      "x": 175,
+      "y": -451,
+      "z": 443,
       "id": 14
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 804,
-      "y": -553,
-      "z": 275,
+      "x": 810,
+      "y": -521,
+      "z": 446,
       "id": 15
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 176,
-      "y": -595,
-      "z": 283,
+      "x": 177,
+      "y": -570,
+      "z": 444,
       "id": 16
     },
     {
@@ -397,41 +433,41 @@
     {
       "text": "",
       "truthValue": null,
-      "x": 590,
-      "y": -555,
-      "z": 276,
+      "x": 596,
+      "y": -496,
+      "z": 445,
       "id": 20
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 627,
-      "y": -206,
-      "z": 278,
+      "x": 598,
+      "y": -105,
+      "z": 441,
       "id": 21
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 826,
-      "y": -205,
-      "z": 277,
+      "x": 809,
+      "y": -127,
+      "z": 442,
       "id": 22
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 189,
-      "y": -344,
-      "z": 280,
+      "x": 178,
+      "y": -264,
+      "z": 438,
       "id": 23
     },
     {
       "text": "",
       "truthValue": null,
-      "x": 184,
-      "y": -212,
-      "z": 311,
+      "x": 170,
+      "y": -125,
+      "z": 437,
       "id": 24
     },
     {
@@ -481,14 +517,6 @@
       "y": -99,
       "z": 267,
       "id": 30
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 1762,
-      "y": 183,
-      "z": 400,
-      "id": 31
     },
     {
       "text": "",
@@ -817,6 +845,86 @@
       "y": -366,
       "z": 389,
       "id": 72
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 208,
+      "y": 163,
+      "z": 424,
+      "id": 73
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 117,
+      "y": 288,
+      "z": 423,
+      "id": 74
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 170,
+      "y": 419,
+      "z": 467,
+      "id": 75
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 159,
+      "y": 572,
+      "z": 476,
+      "id": 76
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 157,
+      "y": 697,
+      "z": 478,
+      "id": 77
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 149,
+      "y": 847,
+      "z": 479,
+      "id": 78
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 214,
+      "y": -740,
+      "z": 454,
+      "id": 79
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 539,
+      "y": -727,
+      "z": 457,
+      "id": 80
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 881,
+      "y": -734,
+      "z": 456,
+      "id": 81
+    },
+    {
+      "text": "",
+      "truthValue": null,
+      "x": 1740,
+      "y": 207,
+      "z": 480,
+      "id": 82
     }
   ]
 }
