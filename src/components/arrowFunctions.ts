@@ -737,7 +737,10 @@ export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: Coords
     }
   }
 
+  ctx.beginPath();
   traceChain(vertices);
+  ctx.stroke();
+  ctx.closePath();
 
 }
 

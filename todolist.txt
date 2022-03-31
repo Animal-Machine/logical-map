@@ -1,11 +1,21 @@
 Étapes principales
 ––––––––––––––––––
 
-Flèches à branches
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Masquer le bouton de suppression
-Supprimer les "null" dans arrowFunctions.ts. Mon code ne devrait pas se reposer là-dessus
-Corriger le clignotement en changeant le type de mouseTarget et mousePosition
+
+Base de données
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Import / export
+"Undo" button
+
+Board
+¯¯¯¯¯
+Empêcher d'en sortir
+L'agrandir lorsque l'utilisateur arrive au bord
+
+Expérience utilisateur
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Indications pour placer les flèches à branches
+Clic simple dans le vide pour passer de "from" à "to"
 
 Types de flèche
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -13,23 +23,6 @@ Bouton menu flèche
 Flèche NOT
 Flèche AND
 Flèche OR
-
-Base de données
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Changer le backend
-"Undo" button
-Import / export
-
-Expérience utilisateur
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Indications pour placer les flèches à branches
-Clic simple dans le vide pour passer de "from" à "to"
-
-Board
-¯¯¯¯¯
-Permettre de zoomer et de dézoomer
-Empêcher d'en sortir
-L'agrandir lorsque l'utilisateur arrive au bord
 
 Calcul déductif
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -40,8 +33,6 @@ Ajouter la fonctionnalité
 Étapes secondaires
 ––––––––––––––––––
 
-Examiner attentivement le résultat de cette commande : console.log(getEventListeners(window));
-et modifier mon code
 
 Corrections et préventions de bugs
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -74,6 +65,11 @@ Gérer le reset des z-values côté backend.
 
 Mieux organiser les conditions dans calculateArrowCoords, dans arrowFunctions.ts
 
+Supprimer les "null" dans arrowFunctions.ts. Mon code ne devrait pas se reposer là-dessus
+
+Examiner attentivement le résultat de cette commande : console.log(getEventListeners(window));
+et modifier mon code
+
 
 Améliorations graphiques
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -87,9 +83,11 @@ Triangle en bas de TileMenu
 
 Ajuster la position de TileMenu en fonction de la place sur l'écran
 
+TileMenu toujours au premier plan
+
 Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
 
-Remettre la fonction de highlight des flèches
+Corriger le clignotement lors du placement des flèches en changeant le type de mouseTarget et mousePosition
 
 
 Améliorations de l'expérience utilisateur
@@ -105,6 +103,7 @@ Fonctionnalités futures
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Nouveau composant : l'union
 Probabilités
+Permettre de zoomer et de dézoomer
 
 
 
@@ -113,3 +112,4 @@ Probabilités
 
 Composants TileMenu, Arrow et AppHeader fonctionnels
 Z-order correctement géré
+Flèches à branches

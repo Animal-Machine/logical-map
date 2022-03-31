@@ -302,11 +302,11 @@ function BoardComponent(props: any) {
       ctx.shadowOffsetY = 4;
       ctx.shadowBlur = 4;
       ctx.shadowColor = 'rgba(0,0,0,.5)';
-      ctx.beginPath();
       for (let i in arrowsCoords) {
         if (arrowsCoords[i].coords) {
+          if (arrowsCoords[i].highlight) { ctx.shadowColor = 'rgba(255,255,255,.5)'; }
           drawAcyclicGraph(ctx, arrowsCoords[i].coords)
-          if (arrowsCoords[i].highlight) {drawAcyclicGraph(ctx, arrowsCoords[i].coords)}
+          ctx.shadowColor = 'rgba(0,0,0,.5)';
         }
       }
       if (['singleArrow', 'branchedArrow1', 'branchedArrow2'].includes(modeState) && tileSelection.tilesFrom.length > 0 && mouseTarget) {
@@ -327,8 +327,6 @@ function BoardComponent(props: any) {
           tilesTo: tTo,
         })[0]);
       }
-      ctx.stroke();
-      ctx.closePath();
       if (stop) { return; }
       else { window.requestAnimationFrame(() => loop(ctx)); }
     }
