@@ -128,13 +128,15 @@ function App() {
     });
   };
 
-  const patchTile = async (id: number, updatedProperties: object) => {
-    return await fetch(`${myServerAddress}tiles/${id}`, {
+  const myPatch = async (address: Address, id: number, updatedProperties: object) => {
+    return await fetch(`${myServerAddress}${address}/${id}`, {
       method: 'PATCH',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify(updatedProperties),
     });
   }
+
+  const patchTile = (id: number, updatedProperties: object) => myPatch("tiles", id, updatedProperties)
 
 
   // Tiles and Arrows States
@@ -256,24 +258,38 @@ function App() {
     // deletes arrows tied to the tile first, then the tile itself.
 
     (async function() {
-      let arrowList: number[] = [];
+      let arrowDeleteList: number[] = [];
+      let arrowPatchFromList: number[] = [];
+      let arrowPatchToList: number[] = [];
       for (let i = 0; i < arrows.length; i++) {
         let a = arrows[i];
+        // We assume that the same id cannot be both in tilesFrom and tilesTo.
         if (a.tilesFrom.includes(id) || a.tilesTo.includes(id)) {
-          await fetch(`${myServerAddress}arrows/${a.id}`, {method: 'DELETE',});
-          arrowList.push(a.id);
+          if ((a.tilesFrom.length === 1 && a.tilesFrom[0] === id) || (a.tilesTo.length === 1 && a.tilesTo[0] === id)) {
+            await fetch(`${myServerAddress}arrows/${a.id}`, {method: 'DELETE',});
+            arrowDeleteList.push(a.id);
+          }
+          else {
+            if (a.tilesFrom.includes(id)) {
+              await myPatch("arrows", a.id, {tilesFrom: a.tilesFrom.filter((tile: number) => tile !== id)});
+              arrowPatchFromList.push(a.id);
+            }
+            else {
+              await myPatch("arrows", a.id, {tilesTo: a.tilesTo.filter((tile: number) => tile !== id)});
+              arrowPatchToList.push(a.id);
+            }
+          }
         }
       }
-      await Promise.all(arrows.map(async (a: Arrow) => {
-      }));
-      return arrowList;
+      return {arrowDeleteList: arrowDeleteList, arrowPatchFromList: arrowPatchFromList, arrowPatchToList: arrowPatchToList};
     })()
       .then(res => {
         fetch(`${myServerAddress}tiles/${id}`, {method: 'DELETE',});
         return res;
       })
-      .then(res => {
-        setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !res.includes(a.id)));
+      .then(({ arrowDeleteList, arrowPatchFromList, arrowPatchToList }) => {
+        setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !arrowDeleteList.includes(a.id))
+                                             .map((a: Arrow) => arrowPatchFromList.includes(a.id) ? {...a, tilesFrom: a.tilesFrom.filter((tile: number) => tile !== id)} : arrowPatchToList.includes(a.id) ? {...a, tilesTo: a.tilesTo.filter((tile: number) => tile !== id)} : a));
         setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id));
         setTilesXY((t: TileXY[]) => t.filter((tile: TileXY) => tile.id !== id));
         setTilesZ((t: TileZ[]) => t.filter((tile: TileZ) => tile.id !== id));

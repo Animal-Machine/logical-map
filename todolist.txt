@@ -3,7 +3,6 @@
 
 Flèches à branches
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Si une tuile est supprimée, retirer seulement une branche si possible
 Masquer le bouton de suppression
 Supprimer les "null" dans arrowFunctions.ts. Mon code ne devrait pas se reposer là-dessus
 Corriger le clignotement en changeant le type de mouseTarget et mousePosition
