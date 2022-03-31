@@ -471,53 +471,71 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
         /// Case 3: one "from" tile, several "to" tiles
 
         else if (tilesFrom.length === 1) {
-          // if there is only one "from" tile
-          let t = tilesFrom[0];
+          let f = tilesFrom[0];
           if (toLineX !== null) {
-            // vertical line
+            // vertical "to" line
             toJunctionPoint[0] = toLineX;
-            if (toLineEnds[0] <= t.y + t.h/2 && t.y + t.h/2 <= toLineEnds[1]) {
-              // if the center of the "from" tile is between the ordinates of the "to" line ends:
-              // single horizontal line
-              toJunctionPoint[1] = t.y + t.h/2;
-              if (toLineX < t.x) { fromCoords = [[t.x, t.y + t.h/2]]; } // if it is to the left of the line
-              else if (t.x + t.w < toLineX) { fromCoords = [[t.x + t.w, t.y + t.h/2]]; } // if it is to the right of the line
+            if (toLineEnds[0] <= f.y + f.h/2 && f.y + f.h/2 <= toLineEnds[1]) {
+              // if the ordinate of the "from" tile is between the ordinates of the "to" line ends:
+              // straight horizontal junction line (middle path)
+              toJunctionPoint[1] = f.y + f.h/2;
+              if (toLineX < f.x) { fromCoords = [[f.x, f.y + f.h/2]]; } // if it is to the left of the line
+              else if (f.x + f.w < toLineX) { fromCoords = [[f.x + f.w, f.y + f.h/2]]; } // if it is to the right of the line
               else { throw new Error("This shouldn't be happening."); }
             }
-            else if (Math.abs(t.x + t.w/2 - toLineX) > Math.abs(t.y + t.h/2 - toLineJunction)) {
-              // if the center of the "from" tile is closer to the "to" line abscissa than to the junction ordinate:
-              center = (toLineX + t.x) / 2;
-              centerPathCoords = [[center, t.y + t.h/2], [center, toLineJunction]];
-              if (toLineX < t.x) { fromCoords = [[t.x, t.y + t.h/2]]; }
-              else if (t.x + t.w < toLineX) { fromCoords = [[t.x + t.w, t.y + t.h/2]]; }
+            else if (Math.abs(f.x + f.w/2 - toLineX) > Math.abs(f.y + f.h/2 - toLineJunction)) {
+              // if the rectangle formed between the "to" tile and the junction point is more long than high:
+              // Z-shaped junction line (middle path)
+              if (toLineX < f.x) {
+                fromCoords = [[f.x, f.y + f.h/2]];
+                center = (toLineX + f.x) / 2;
+              }
+              else if (f.x + f.w < toLineX) {
+                fromCoords = [[f.x + f.w, f.y + f.h/2]];
+                center = (toLineX + f.x + f.w) / 2;
+              }
               else { throw new Error("This shouldn't be happening."); }
+              centerPathCoords = [[center, f.y + f.h/2], [center, toLineJunction]];
             }
             else {
-              centerPathCoords = [[t.x + t.w/2, toLineJunction]];
-              if (toLineJunction < t.y) { fromCoords = [[t.x + t.w/2, t.y]]; }
-              else { fromCoords = [[t.x + t.w/2, t.y + t.h]]; }
+              // if the rectangle formed between the "to" tile and the junction point is more high than long:
+              // L-shaped junction line (middle path)
+              centerPathCoords = [[f.x + f.w/2, toLineJunction]];
+              if (toLineJunction < f.y) { fromCoords = [[f.x + f.w/2, f.y]]; }
+              else { fromCoords = [[f.x + f.w/2, f.y + f.h]]; }
             }
           }
           else if (toLineY !== null) {
-            // horizontal line
+            // horizontal "to" line
             toJunctionPoint[1] = toLineY;
-            if (toLineEnds[0] <= t.x + t.w/2 && t.x + t.w/2 <= toLineEnds[1]) {
-              toJunctionPoint[0] = t.x + t.w/2;
-              if (toLineY < t.y) { fromCoords = [[t.x + t.w/2, t.y]]; }
-              else if (t.y + t.h < toLineY) { fromCoords = [[t.x + t.w/2, t.y + t.h]]; }
+            if (toLineEnds[0] <= f.x + f.w/2 && f.x + f.w/2 <= toLineEnds[1]) {
+              // if the abscissa of the "from" tile is between the abscissae of the "to" line ends:
+              // straight vertical junction line (middle path)
+              toJunctionPoint[0] = f.x + f.w/2;
+              if (toLineY < f.y) { fromCoords = [[f.x + f.w/2, f.y]]; }
+              else if (f.y + f.h < toLineY) { fromCoords = [[f.x + f.w/2, f.y + f.h]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
-            else if (Math.abs(t.y + t.h/2 - toLineY) > Math.abs(t.x + t.w/2 - toLineJunction)) {
-              center = (toLineY + t.y) / 2;
-              centerPathCoords = [[t.x + t.w/2, center], [toLineJunction, center]];
-              if (toLineY < t.y) { fromCoords = [[t.x + t.w/2, t.y]]; }
-              else if (t.y + t.h < toLineY) { fromCoords = [[t.x + t.w/2, t.y + t.h]]; }
+            else if (Math.abs(f.y + f.h/2 - toLineY) > Math.abs(f.x + f.w/2 - toLineJunction)) {
+              // if the rectangle formed between the "from" tile and the junction point is more high than long:
+              // Z-shaped junction line (middle path)
+              if (toLineY < f.y) {
+                fromCoords = [[f.x + f.w/2, f.y]];
+                center = (toLineY + f.y) / 2;
+              }
+              else if (f.y + f.h < toLineY) {
+                fromCoords = [[f.x + f.w/2, f.y + f.h]];
+                center = (toLineY + f.y + f.h) / 2;
+              }
               else { throw new Error("This shouldn't be happening."); }
+              centerPathCoords = [[f.x + f.w/2, center], [toLineJunction, center]];
             }
             else {
-              centerPathCoords = [[toLineJunction, t.y + t.h/2]];
-              if (toLineJunction < t.x) { fromCoords = [[t.x, t.y + t.h/2]]; }
-              else { fromCoords = [[t.x + t.w, t.y + t.h/2]]; }
+              // if the rectangle formed between the "from" tile and the junction point is more long than high:
+              // L-shaped junction line (middle path)
+              centerPathCoords = [[toLineJunction, f.y + f.h/2]];
+              if (toLineJunction < f.x) { fromCoords = [[f.x, f.y + f.h/2]]; }
+              else { fromCoords = [[f.x + f.w, f.y + f.h/2]]; }
             }
           }
           else {
@@ -528,51 +546,72 @@ export function calculateArrowCoords({tilesFrom, tilesTo}: {tilesFrom: Rectangle
           toCoords = [toJunctionPoint, toCoords];
         }
 
-        /// Case 4: one "from" tile, several "to" tiles
+        /// Case 4: one "to" tile, several "from" tiles
+        // (same structure as the previous block)
 
         else {
-          // if there is only one "to" tile
-          // (same structure as the previous block)
           let t = tilesTo[0];
           if (fromLineX !== null) {
-            // vertical line
+            // vertical "from" line
             fromJunctionPoint[0] = fromLineX;
             if (fromLineEnds[0] <= t.y + t.h/2 && t.y + t.h/2 <= fromLineEnds[1]) {
+              // if the ordinate of the "to" tile is between the ordinates of the "to" line ends:
+              // straight horizontal junction line (middle path)
               fromJunctionPoint[1] = t.y + t.h/2;
               if (fromLineX < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
               else if (t.x + t.w < fromLineX) { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else if (Math.abs(t.x + t.w/2 - fromLineX) > Math.abs(t.y + t.h/2 - fromLineJunction)) {
-              center = (fromLineX + t.x) / 2;
-              centerPathCoords = [[center, fromLineJunction], [center, t.y + t.h/2]];
-              if (fromLineX < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
-              else if (t.x + t.w < fromLineX) { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
+              // if the rectangle formed between the "to" tile and the junction point is more long than high:
+              // Z-shaped junction line (middle path)
+              if (fromLineX < t.x) {
+                toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]];
+                center = (fromLineX + t.x) / 2;
+              }
+              else if (t.x + t.w < fromLineX) {
+                toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]];
+                center = (fromLineX + t.x + t.w) / 2;
+              }
               else { throw new Error("This shouldn't be happening."); }
+              centerPathCoords = [[center, fromLineJunction], [center, t.y + t.h/2]];
             }
             else {
+              // if the rectangle formed between the "to" tile and the junction point is more high than long:
+              // L-shaped junction line (middle path)
               centerPathCoords = [[t.x + t.w/2, fromLineJunction]];
               if (fromLineJunction < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
               else { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
             }
           }
           else if (fromLineY !== null) {
-            // horizontal line
+            // horizontal "from" line
             fromJunctionPoint[1] = fromLineY;
             if (fromLineEnds[0] <= t.x + t.w/2 && t.x + t.w/2 <= fromLineEnds[1]) {
+              // if the abscissa of the "to" tile is between the abscissae of the "from" line ends:
+              // straight vertical junction line (middle path)
               fromJunctionPoint[0] = t.x + t.w/2;
               if (fromLineY < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
               else if (t.y + t.h < fromLineY) { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
               else { throw new Error("This shouldn't be happening."); }
             }
             else if (Math.abs(t.y + t.h/2 - fromLineY) > Math.abs(t.x + t.w/2 - fromLineJunction)) {
-              center = (fromLineY + t.y) / 2;
-              centerPathCoords = [[fromLineJunction, center], [t.x + t.w/2, center]];
-              if (fromLineY < t.y) { toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]]; }
-              else if (t.y + t.h < fromLineY) { toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]]; }
+              // if the rectangle formed between the "to" tile and the junction point is more high than long:
+              // Z-shaped junction line (middle path)
+              if (fromLineY < t.y) {
+                toCoords = [[t.x + t.w/2, t.y], [[t.x + t.w/2 - d2, t.y - d2], [t.x + t.w/2 + d2, t.y - d2]]];
+                center = (fromLineY + t.y) / 2;
+              }
+              else if (t.y + t.h < fromLineY) {
+                toCoords = [[t.x + t.w/2, t.y + t.h], [[t.x + t.w/2 - d2, t.y + t.h + d2], [t.x + t.w/2 + d2, t.y + t.h + d2]]];
+                center = (fromLineY + t.y + t.h) / 2;
+              }
               else { throw new Error("This shouldn't be happening."); }
+              centerPathCoords = [[fromLineJunction, center], [t.x + t.w/2, center]];
             }
             else {
+              // if the rectangle formed between the "to" tile and the junction point is more long than high:
+              // L-shaped junction line (middle path)
               centerPathCoords = [[fromLineJunction, t.y + t.h/2]];
               if (fromLineJunction < t.x) { toCoords = [[t.x, t.y + t.h/2], [[t.x - d2, t.y + t.h/2 - d2], [t.x - d2, t.y + t.h/2 + d2]]]; }
               else { toCoords = [[t.x + t.w, t.y + t.h/2], [[t.x + t.w + d2, t.y + t.h/2 - d2], [t.x + t.w + d2, t.y + t.h/2 + d2]]]; }
