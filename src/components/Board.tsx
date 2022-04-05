@@ -53,6 +53,24 @@ function BoardComponent(props: any) {
 
 
  
+  // Mouse States
+
+  const [mousePosition, setMousePosition] = useState<Point>({x: 0, y: 0});
+    // used for arrow highlighting and arrow tip drawing in arrow mode
+  const [mouseTarget, setMouseTarget] = useState<HTMLElement|null>(null);
+    // used for arrow tip drawing in arrow mode
+
+  useEffect(() => {
+    function updateMousePosition(event: MouseEvent) {
+      setMousePosition({x: event.clientX, y: event.clientY});
+      setMouseTarget(event.target as HTMLElement);
+    }
+    window.addEventListener('mousemove', updateMousePosition);
+
+    return () => { window.removeEventListener('mousemove', updateMousePosition); };
+  }, []);
+
+
   // Board State
 
   const initialBoardCoords = {
@@ -267,10 +285,6 @@ function BoardComponent(props: any) {
 
   useEffect(() => {
 
-    let stop = false; // used to stop the loop when re-rendering
-    let mousePosition: Point = {x: 0, y: 0};
-    let mouseTarget: HTMLElement | null;
-
     const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
     let ctx: CanvasRenderingContext2D | null;
 
@@ -278,57 +292,35 @@ function BoardComponent(props: any) {
       // canvas is not supported by some browsers and can be null
       ctx = canvas.getContext('2d');
       if (ctx) {
-        if (modeState !== 'default') {
-          window.addEventListener('mousemove', updateMousePosition);
-            // window, NOT canvas: else the target will always be the canvas
+        ctx.clearRect(0, 0, board.w, board.h);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'white';
+        ctx.shadowOffsetX = 4;
+        ctx.shadowOffsetY = 4;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0,0,0,.5)';
+        for (let i in arrowsCoords) {
+          if (arrowsCoords[i].coords) {
+            if (arrowsCoords[i].highlight) { ctx.shadowColor = 'rgba(255,255,255,.5)'; }
+            drawAcyclicGraph(ctx, arrowsCoords[i].coords)
+            ctx.shadowColor = 'rgba(0,0,0,.5)';
+          }
         }
-        loop(ctx);
-      }
-    }
-
-    function updateMousePosition(event: MouseEvent) {
-      // used in arrow mode, to detect when the user clicks on a tile and update the tip of the arrow
-      mousePosition.x = event.clientX;
-      mousePosition.y = event.clientY;
-      mouseTarget = event.target as HTMLElement;
-    }
-
-    function loop(ctx: CanvasRenderingContext2D) {
-      // animation loop which draws on the canvas context
-      ctx.clearRect(0, 0, board.w, board.h);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = 'white';
-      ctx.shadowOffsetX = 4;
-      ctx.shadowOffsetY = 4;
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = 'rgba(0,0,0,.5)';
-      for (let i in arrowsCoords) {
-        if (arrowsCoords[i].coords) {
-          if (arrowsCoords[i].highlight) { ctx.shadowColor = 'rgba(255,255,255,.5)'; }
-          drawAcyclicGraph(ctx, arrowsCoords[i].coords)
-          ctx.shadowColor = 'rgba(0,0,0,.5)';
+        if (['singleArrow', 'branchedArrow1', 'branchedArrow2'].includes(modeState) && tileSelection.tilesFrom.length > 0) {
+          let tFrom = tileSelection.tilesFrom.map(tileIdToRectangle);
+          let tTo = tileSelection.tilesTo.map(tileIdToRectangle);
+          let tAll = tileSelection.tilesFrom.concat(tileSelection.tilesTo);
+          if (modeState === 'branchedArrow1') {
+            tFrom.push(getArrowTip(tAll));
+          } else {
+            tTo.push(getArrowTip(tAll));
+          }
+          drawAcyclicGraph(ctx, calculateArrowCoords({
+            tilesFrom: tFrom,
+            tilesTo: tTo,
+          })[0]);
         }
       }
-      if (['singleArrow', 'branchedArrow1', 'branchedArrow2'].includes(modeState) && tileSelection.tilesFrom.length > 0 && mouseTarget) {
-        // mouseTarget is important here because when tileSelection just changed,
-        // the event handler updateMousePosition has just been placed and didn't run,
-        // so mousePosition and mouseTarget have their default value. So it's better
-        // not to draw the arrow being placed.
-        let tFrom = tileSelection.tilesFrom.map(tileIdToRectangle);
-        let tTo = tileSelection.tilesTo.map(tileIdToRectangle);
-        let tAll = tileSelection.tilesFrom.concat(tileSelection.tilesTo);
-        if (modeState === 'branchedArrow1') {
-          tFrom.push(getArrowTip(tAll));
-        } else {
-          tTo.push(getArrowTip(tAll));
-        }
-        drawAcyclicGraph(ctx, calculateArrowCoords({
-          tilesFrom: tFrom,
-          tilesTo: tTo,
-        })[0]);
-      }
-      if (stop) { return; }
-      else { window.requestAnimationFrame(() => loop(ctx)); }
     }
 
     function getArrowTip(unselectableTiles: number[]): Rectangle {
@@ -355,12 +347,8 @@ function BoardComponent(props: any) {
     }
 
     return () => {
-      stop = true;
-      if (modeState !== 'default' && canvas) {
-        window.removeEventListener('mousemove', updateMousePosition);
-      }
     };
-  }, [arrowsCoords, modeState, tileSelection, board]);
+  }, [mousePosition, board, arrowsCoords, modeState, tileSelection]);
 
 
   // Highlight arrow when cursor is on it
