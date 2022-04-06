@@ -1,4 +1,4 @@
-import { TileData, UpdateTruthValue } from '../types';
+import { TileData, UpdateTruthValue } from '../types/tiles';
 
 
 export default function TileMenuComponent(props: any) {

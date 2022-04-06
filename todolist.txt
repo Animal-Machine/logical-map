@@ -16,6 +16,7 @@ Expérience utilisateur
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Indications pour placer les flèches à branches
 Clic simple dans le vide pour passer de "from" à "to"
+Bouton "clear board"
 
 Types de flèche
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -69,6 +70,8 @@ Supprimer les "null" dans arrowFunctions.ts. Mon code ne devrait pas se reposer 
 
 Examiner attentivement le résultat de cette commande : console.log(getEventListeners(window));
 et modifier mon code
+
+Rechercher et remplacer toutes les occurences de "mouseX/mousePosition.x/… - board.x"
 
 
 Améliorations graphiques

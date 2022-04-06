@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
-import { calculateArrowCoords, drawAcyclicGraph } from './arrowFunctions';
-import { TileXY, TileZ, TileContent, TileDataPart, TileData, Operator, Arrow, Mode, TileSelection, AddArrow } from '../types';
-import { Point, Rectangle, ArrowCoords, Coords, DoubleCoords, CoordsOrArray } from '../coordTypes';
+import { calculateArrowCoords, drawAcyclicGraph, isOnGraph } from './arrowFunctions';
+import { TileXY, TileZ, TileContent, TileDataPart, TileData, TileSelection } from '../types/tiles';
+import { Operator, Arrow, AddArrow, Mode, ArrowCoords, ArrowHighlight, HighlightMethod } from '../types/arrows';
+import { Point, Rectangle, Coords, DoubleCoords, CoordsOrArray } from '../types/graphDrawing';
 
 
 function BoardComponent(props: any) {
@@ -234,9 +235,11 @@ function BoardComponent(props: any) {
   /// Update arrows coordinates
 
   const [arrowsCoords, setArrowsCoords] = useState<ArrowCoords[]>([]);
-    // used for drawing and in Arrow.js for the hitbox and the delete button,
+    // used for drawing and in Arrow.tsx for the delete button,
     // contains the properties "id" (of the arrow), "coords" (of both ends)
-    // and "highlight" (when the cursor is on it)
+  const [arrowsHighlight, setArrowsHighlight] = useState<ArrowHighlight[]>([]);
+    // contains the properties "id" (of the arrow), "highlightedByDrawing" (when the cursor hovers over the arrow itself)
+    // and "highlightedByButton" (when the cursor hovers over a button associated with this arrow)
 
   useEffect(() => {
     // converts arrows to arrowsCoords
@@ -269,7 +272,7 @@ function BoardComponent(props: any) {
 
         let [coords, deleteButtonCoords]: [DoubleCoords | CoordsOrArray[], Coords] = calculateArrowCoords({tilesFrom: tilesFrom, tilesTo: tilesTo});
 
-        return {id: a.id, coords: coords, deleteButtonCoords: deleteButtonCoords, highlight: false};
+        return {id: a.id, coords: coords, deleteButtonCoords: deleteButtonCoords};
       }
       catch(err) {console.error(err)}
 
@@ -280,6 +283,10 @@ function BoardComponent(props: any) {
     }).filter((a: ArrowCoords | undefined) => a) as ArrowCoords[]);
   }, [tilesXY, arrows]);
 
+  useEffect(() => {
+    // converts arrows to arrowsHighlight
+    setArrowsHighlight(arrows.map((a: Arrow) => ({id: a.id, highlightedByDrawing: false, highlightedByButton: false})));
+  }, [arrows]);
 
   /// Draw all arrows
 
@@ -301,7 +308,10 @@ function BoardComponent(props: any) {
         ctx.shadowColor = 'rgba(0,0,0,.5)';
         for (let i in arrowsCoords) {
           if (arrowsCoords[i].coords) {
-            if (arrowsCoords[i].highlight) { ctx.shadowColor = 'rgba(255,255,255,.5)'; }
+            switchHighlight(arrowsCoords[i].id, isOnGraph([mousePosition.x - board.x, mousePosition.y - board.y], arrowsCoords[i].coords), "drawing");
+            if (arrowsHighlight[i].highlightedByDrawing || arrowsHighlight[i].highlightedByButton) {
+              ctx.shadowColor = 'rgba(255,255,255,.5)';
+            }
             drawAcyclicGraph(ctx, arrowsCoords[i].coords)
             ctx.shadowColor = 'rgba(0,0,0,.5)';
           }
@@ -351,10 +361,11 @@ function BoardComponent(props: any) {
   }, [mousePosition, board, arrowsCoords, modeState, tileSelection]);
 
 
-  // Highlight arrow when cursor is on it
+  // Highlight arrow when the mouse hovers over it or its button
 
-  function switchHighlight(id: number, value: boolean) {
-    setArrowsCoords((arrowsCoords: ArrowCoords[]) => arrowsCoords.map((a: ArrowCoords) => (a.id === id) ? {...a, highlight: value} : a ));
+  function switchHighlight(id: number, value: boolean, method: HighlightMethod) {
+    setArrowsHighlight((arrowsHighlight: ArrowHighlight[]) => arrowsHighlight.map((a: ArrowHighlight) =>
+      a.id === id ? (method === "drawing" ? {...a, highlightedByDrawing: value} : {...a, highlightedByButton: value}) : a ));
   }
 
 
@@ -372,7 +383,7 @@ function BoardComponent(props: any) {
       {arrowsCoords.map(a =>
         <ArrowComponent
           key={a.id}
-          arrow={a}
+          arrow={{...a, ...arrowsHighlight.filter((aH: ArrowHighlight) => aH.id === a.id)[0]}}
           switchHighlight={switchHighlight}
           deleteArrow={deleteArrow}
         />

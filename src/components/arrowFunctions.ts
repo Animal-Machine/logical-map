@@ -1,4 +1,4 @@
-import { Point, Rectangle, PointOrRectangle, Coords, isCoords, DoubleCoords, isDoubleCoords, CoordsOrArray, meanCoords, distInfCoords } from '../coordTypes';
+import { Point, Rectangle, PointOrRectangle, Coords, isCoords, DoubleCoords, isDoubleCoords, CoordsOrArray, meanCoords, distInfCoords } from '../types/graphDrawing';
 
 
 
@@ -686,13 +686,13 @@ export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: Coords
 
   function traceChain(V: CoordsOrArray[]) {
   /* The parameter is a "chain array", it represents coords linked together in a chain,
-   * and each coord can be followed by another type of array that represents a branching.
+   * and each coord can be followed by a "branching array" (see below).
    * For example:
    * [A, B, [C, D], E]
    * represents
    * A──B──E
-   *    │
-   *    C──D
+   *   ╱ ╲
+   *  C   D
    */
     try {
       if (!isCoords(V[0])) {
@@ -745,25 +745,68 @@ export function drawAcyclicGraph(ctx: CanvasRenderingContext2D, vertices: Coords
 }
 
 
+export function isOnGraph(coords: Coords, vertices: CoordsOrArray[]) {
+// Traverses a graph drawing in order to see if coords is a part of it.
 
-export function getArrowHitbox(arrow: DoubleCoords | CoordsOrArray[]): [DoubleCoords, DoubleCoords, DoubleCoords] {
+  let currentCoords: Coords;
 
-  if (isDoubleCoords(arrow)) {
-    const [ x1, y1, x3, y3 ] = arrow;
-    const y2 = Math.round((y1 + y3) / 2); // where the arrow turns
-    let t = 8; // thickness (half the space between the two lines)
-    t += 1;
-
-    let rect1: DoubleCoords = [x1-t, Math.min(y1,y2-t), 2*t, Math.abs(y2-y1)+t];
-    let rect3: DoubleCoords = [x3-t, Math.min(y3,y2-t), 2*t, Math.abs(y3-y2)+t];
-    let rect2: DoubleCoords = [Math.min(x1,x3)-t, y2-t, Math.abs(x3-x1)+2*t, 2*t];
-
-    return [rect1, rect2, rect3];
+  function isBetween(X: Coords, A: Coords, B: Coords): boolean {
+    let between = false;
+    if (A[0] === B[0]) {
+      between = (A[1] <= X[1] && X[1] <= B[1]) || (B[1] <= X[1] && X[1] <= A[1]);
+    }
+    else if (A[1] === B[1]) {
+      between = (A[0] <= X[0] && X[0] <= B[0]) || (B[0] <= X[0] && X[0] <= A[0]);
+    }
+    const d = 5;
+    // H is the projection of X on (AB). We look for the distance XH, which must be smaller than d.
+    const AX_ = [X[0] - A[0], X[1] - A[1]]; // vector from A to X
+    const AB_ = [B[0] - A[0], B[1] - A[1]];
+    const q   = (AX_[0] * AB_[0] + AX_[1] * AB_[1]) / (AB_[0]**2 + AB_[1]**2);
+    const XH_ = [q * AB_[0] - AX_[0], q * AB_[1] - AX_[1]];
+    const XH  = Math.sqrt(XH_[0]**2 + XH_[1]**2);
+    return between && XH <= d;
   }
-  else {
-    //TODO
-    const zero: DoubleCoords = [0, 0, 0, 0];
-    return [zero, zero, zero];
+
+  function checkChain(V: CoordsOrArray[]) {
+    try {
+      if (!isCoords(V[0])) {
+        throw new Error("Wrong format. The first element of a chain must be of type Coords.");
+      }
+      currentCoords = V[0];
+      let j = 0; // index of the last Coords element
+      for (let i = 1; i < V.length; i++) {
+        if (isCoords(V[i])) {
+          if (isBetween(coords, currentCoords, V[i] as Coords)) { return true; }
+          currentCoords = V[i] as Coords; // TODO see why isCoords doesn't seem to work
+          j = i;
+        } else {
+          if (checkBranching(V[j] as Coords, V[i] as CoordsOrArray[])) { return true; }
+          currentCoords = V[j] as Coords;
+        }
+      }
+    } catch (err) { console.error("While parsing graph array:", err); }
+    return false;
   }
+
+  function checkBranching(v0: Coords, V: CoordsOrArray[]) {
+    for (let v of V) {
+      currentCoords = v0;
+      if (isCoords(v)) {
+        if (isBetween(coords, currentCoords, v)) { return true; }
+        currentCoords = v;
+      } else {
+        if (!isCoords(v[0])) {
+          throw new Error("Wrong format. The first element of a chain must be of type Coords.");
+        }
+        if (isBetween(coords, currentCoords, v[0])) { return true; }
+        currentCoords = v[0];
+        if (checkChain(v)) { return true; }
+      }
+    }
+    return false;
+  }
+
+  return checkChain(vertices);
 
 }

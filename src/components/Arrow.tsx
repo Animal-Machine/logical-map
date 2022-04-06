@@ -1,68 +1,48 @@
 import { useState, useEffect } from 'react';
-import { getArrowHitbox } from './arrowFunctions';
-import * as coordTypes from '../coordTypes'
+import { ArrowProps, SwitchHighlight } from '../types/arrows';
+import { Coords } from '../types/graphDrawing';
 
 
 export default function ArrowComponent(props: any) {
 
-  const arrow:                coordTypes.ArrowCoords
-    = props.arrow; 
-  const switchHighlight:      (id: number, value: boolean) => void
-    = props.switchHighlight; 
+  const arrow:                ArrowProps
+    = props.arrow;
+  const switchHighlight:      SwitchHighlight
+    = props.switchHighlight;
   const deleteArrow:          (id: number) => void
     = props.deleteArrow;
 
 
-  const [hitbox, setHitbox] = useState<[coordTypes.DoubleCoords, coordTypes.DoubleCoords, coordTypes.DoubleCoords]>([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
-    // The arrow can be covered with three rectangles. These are their coordinates and sizes: [x, y, w, h].
-
-  const [deleteButtonCoords, setButtonBox] = useState<coordTypes.Coords>([0, 0])
+  const [deleteButtonCoords, setButtonBox] = useState<Coords>([0, 0]);
     // Hitbox of the delete button which appears when the cursor is on the arrow.
-  
+
   const buttonSize = 44;
 
   useEffect(() => {
-    if (arrow && arrow.coords) {
-      setHitbox(getArrowHitbox(arrow.coords));
-      setButtonBox(arrow.deleteButtonCoords);
-    }
+    setButtonBox(arrow.deleteButtonCoords);
   }, [arrow]);
 
   return(
     <div
-      onMouseEnter = {() => switchHighlight(arrow.id, true)}
-      onMouseLeave = {() => switchHighlight(arrow.id, false)}
+      onMouseEnter = {() => switchHighlight(arrow.id, true,  "button")}
+      onMouseLeave = {() => switchHighlight(arrow.id, false, "button")}
     >
-      {hitbox.map((h, i) =>
-        <div
-          key={i}
-          style = {{
-            position: 'absolute',
-            left: h[0],
-            top: h[1],
-            width: h[2],
-            height: h[3],
-            cursor: 'default',
-          }}
-        >
-        </div>
-      )}
-      {/*arrow.highlight && */<button
+      {(arrow.highlightedByDrawing || arrow.highlightedByButton) && <button
         className="DeleteArrow"
         style = {{
           position: 'absolute',
           left: deleteButtonCoords[0] - buttonSize/2,
-          top: deleteButtonCoords[1] - buttonSize/2,
-          width: buttonSize,
-          height: buttonSize,
+          top:  deleteButtonCoords[1] - buttonSize/2,
+          width:        buttonSize,
+          height:       buttonSize,
           borderRadius: buttonSize,
 
-          backgroundColor: 'white',
+          backgroundColor:  'white',
           border: '1px solid white',
           cursor: 'pointer',
 
-          display: 'flex',
-          alignItems: 'center',
+          display:        'flex',
+          alignItems:     'center',
           justifyContent: 'center',
         }}
         
@@ -70,7 +50,7 @@ export default function ArrowComponent(props: any) {
       >
         <div
           style = {{
-            width: 35,
+            width:  35,
             height: 35,
             backgroundColor: 'rgba(0,0,0,0)',
           }}

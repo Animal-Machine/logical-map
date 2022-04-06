@@ -33,18 +33,6 @@ export function isDoubleCoords(array: Array<any>): array is DoubleCoords {
 
 export type CoordsOrArray = Coords | CoordsOrArray[];
 
-type recursiveNumber = number | recursiveNumber[];
-let a: recursiveNumber = [1, 2, 3];
-let b: recursiveNumber = 3;
-let c: recursiveNumber = [1, 2, [3, 4]];
-
-export interface ArrowCoords {
-  id: number;
-  coords: CoordsOrArray[];
-  deleteButtonCoords: Coords;
-  highlight: boolean;
-}
-
 export function meanCoords(coords: Coords[], weights: number[] = []) {
   // weighted mean between elements of type Coords
   let coordSum: Coords = [0, 0];

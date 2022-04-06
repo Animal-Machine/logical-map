@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, forwardRef, MouseEvent } from 'react';
 import TileMenuComponent from './TileMenu';
-import { TileData, Operator, Mode, TileSelection, UpdateTruthValue, AddArrow } from '../types';
-import { Coords } from '../coordTypes';
+import { TileData, TileSelection, UpdateTruthValue } from '../types/tiles';
+import { Operator, Mode, AddArrow } from '../types/arrows';
+import { Coords } from '../types/graphDrawing';
 
 
 const TileComponent = forwardRef((props: any, ref: any) => {

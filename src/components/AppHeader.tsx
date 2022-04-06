@@ -1,4 +1,5 @@
-import { Address, TileData, Arrow, Mode } from '../types';
+import { Address, TileData } from '../types/tiles';
+import { Arrow, Mode } from '../types/arrows';
 
 
 export default function AppHeaderComponent(props: any) {
