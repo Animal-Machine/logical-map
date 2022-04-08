@@ -1,19 +1,26 @@
 .App {
   width: 100vw;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .App-header {
+  flex-shrink: 0;
   height: 100px;
   width: 100%;
-  background-color: white;
-  position: absolute;
   z-index: 1;
+  background-color: white;
+  user-select: none;
+}
+
+.Board-container {
+  height: 100%;
+  z-index: 0;
 }
 
 .Board {
-  position: absolute;
-  z-index: 0;
+  position: relative;
   width: 3840px;
   height: 2160px;
   background-color: #384048;
@@ -197,4 +204,8 @@
    * the largest button that contains it,
    * hence the div inside the DeleteArrow-class button. */
   opacity: 1;
+}
+
+:export {
+  appHeaderSize: 100px;
 }

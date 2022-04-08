@@ -5,6 +5,7 @@ import { calculateArrowCoords, drawAcyclicGraph, isOnGraph } from './arrowFuncti
 import { TileXY, TileZ, TileContent, TileDataPart, TileData, TileSelection } from '../types/tiles';
 import { Operator, Arrow, AddArrow, Mode, ArrowCoords, ArrowHighlight, HighlightMethod } from '../types/arrows';
 import { Point, Rectangle, Coords, DoubleCoords, CoordsOrArray } from '../types/graphDrawing';
+//import { appHeaderSize } from '../Sass/App';
 
 
 function BoardComponent(props: any) {
@@ -53,6 +54,10 @@ function BoardComponent(props: any) {
     = props.deleteArrow;
 
 
+
+  const appHeaderSize = 100;
+    // the header causes some things to shift
+
  
   // Mouse States
 
@@ -63,7 +68,8 @@ function BoardComponent(props: any) {
 
   useEffect(() => {
     function updateMousePosition(event: MouseEvent) {
-      setMousePosition({x: event.clientX, y: event.clientY});
+      setMousePosition({x: event.clientX, y: event.clientY - appHeaderSize});
+        // we need to do as if the window was Board-container, hence the ordinate shift
       setMouseTarget(event.target as HTMLElement);
     }
     window.addEventListener('mousemove', updateMousePosition);
@@ -72,20 +78,56 @@ function BoardComponent(props: any) {
   }, []);
 
 
+
   // Board State
 
   const initialBoardCoords = {
-    x: -1920,
-    y: -1080,
-    w: 3840,
-    h: 2160,
+    x: -window.innerWidth  / 2,
+    y: -window.innerHeight / 2,
+    w:  window.innerWidth  * 2,
+    h:  window.innerHeight * 2,
   };
 
   const [board, setBoard] = useState<Rectangle>(initialBoardCoords);
 
   const [origin, setOrigin] = useState<Coords>([-initialBoardCoords.x, -initialBoardCoords.y]);
-    // I want 0, 0 to be at the center of my board.
-    // These "origin" coordinates are therefore added to all tiles coordinates.
+    // I want to be able to extend the board leftwards and upwards, so I need negative coordinates.
+    // Tiles will be stored in the database with positive or negative coordinates.
+    // However, in order to draw with canvas, I need to convert everything to positive coordinates.
+    // "origin" represents the coordinates of (0, 0) in the frame of reference of the canvas.
+    // These coordinates are therefore substracted to the mouse coordinates in addTile, and added to all tiles
+    // coordinates just before being displayed (in the html style attribute, in the render of TileComponent).
+    // The point they represent is located at the top left corner of the screen on page load.
+
+
+  useEffect(() => {
+
+    // The following lines resize the board if some tiles are sticking out:
+    let newBoard = board;
+    let xMax = 0;
+    let yMax = 0;
+    for (let t of tilesXY) {
+      if (t.x > xMax) { xMax = t.x; }
+      if (t.y > yMax) { yMax = t.y; }
+    }
+    if (board.w < xMax + origin[0]) { newBoard.w = xMax + origin[0]; }
+    if (board.h < yMax + origin[1]) { newBoard.h = yMax + origin[1]; }
+    setBoard(newBoard);
+
+    function adaptBoardSizeToWindow() {
+      // this function resizes the board when the window is enlarged
+      const boardContainerSize = window.innerHeight - appHeaderSize;
+      if (board.w < window.innerWidth)                 { setBoard({...board, x: 0, w: window.innerWidth });      }
+      else if (board.x > 0)                            { setBoard({...board, x: 0 });                            }
+      else if (board.x + board.w < window.innerWidth)  { setBoard({...board, x: window.innerWidth - board.w });  }
+      if (board.h < boardContainerSize)                { setBoard({...board, y: 0, h: boardContainerSize });     }
+      else if (board.y > 0)                            { setBoard({...board, y: 0 });                            }
+      else if (board.y + board.h < boardContainerSize) { setBoard({...board, y: boardContainerSize - board.h }); }
+    }
+    window.addEventListener('resize', adaptBoardSizeToWindow);
+
+    return () => { window.removeEventListener('resize', adaptBoardSizeToWindow); };
+  }, [board]);
 
 
   // Dragging
@@ -97,13 +139,13 @@ function BoardComponent(props: any) {
 
   // Board dragging
 
-  const startDraggingBoard = (e: any) => {
+  const startDraggingBoard = (e: React.MouseEvent) => {
     // Drag board only with left mouse button if it's the target,
     // or drag board through tile with middle button:
-    if ((e.button===0 && e.target.tagName==='CANVAS') || e.button===1) {
+    if ((e.button===0 && (e.target as HTMLElement).tagName==='CANVAS') || e.button===1) {
 
       let { x:boardInitialX, y:boardInitialY } = board;
-      // Coordsinates of the mouse relative to the top-left corner of the board:
+      // Coordinates of the mouse relative to the top-left corner of the board:
       mouseRelToEltX = e.clientX - boardInitialX;
       mouseRelToEltY = e.clientY - boardInitialY;
 
@@ -113,9 +155,15 @@ function BoardComponent(props: any) {
   };
 
   const dragBoard = (e: MouseEvent) => {
-    setBoard(b => ({ ...b,
-               x:e.clientX-mouseRelToEltX,
-               y:e.clientY-mouseRelToEltY }))
+    const boardContainerSize = window.innerHeight - appHeaderSize;
+    let x = e.clientX - mouseRelToEltX;
+    let y = e.clientY - mouseRelToEltY;
+    // The following if statements prevent the user to go beyond the board boundaries:
+    if (x > 0) { x = 0; }
+    if (y > 0) { y = 0; }
+    if (x + board.w < window.innerWidth)  { x = window.innerWidth  - board.w; }
+    if (y + board.h < boardContainerSize) { y = boardContainerSize - board.h; }
+    setBoard(b => ({ ...b, x: x, y: y }));
   };
 
   const stopDraggingBoard = () => {
@@ -199,12 +247,12 @@ function BoardComponent(props: any) {
 
   // Add an empty tile at mouse position
 
-  function addEmptyTile(mouseX: number, mouseY: number) {
+  function addEmptyTile() {
     addTile({
       text: '',
       truthValue: null,
-      x: mouseX - board.x - origin[0],
-      y: mouseY - board.y - origin[1],
+      x: mousePosition.x - board.x - origin[0],
+      y: mousePosition.y - board.y - origin[1],
     });
   }
 
@@ -376,7 +424,7 @@ function BoardComponent(props: any) {
       style = {{ left:board.x, top:board.y, width:board.w, height:board.h }}
       onMouseDown = {e => startDraggingBoard(e)}
       onDoubleClick = {e => {
-        if (modeState === 'default') {addEmptyTile(e.clientX, e.clientY)}
+        if (modeState === 'default') {addEmptyTile()}
       }}
     >
       <canvas width={board.w} height={board.h}>{/*Insérer des éléments pour remplacer les flèches*/}</canvas>

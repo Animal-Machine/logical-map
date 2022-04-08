@@ -42,19 +42,6 @@
     },
     {
       "tilesFrom": [
-        20,
-        15
-      ],
-      "tilesTo": [
-        14,
-        16
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 5
-    },
-    {
-      "tilesFrom": [
         22,
         21
       ],
@@ -65,18 +52,6 @@
       "operator1": "",
       "operator2": "",
       "id": 6
-    },
-    {
-      "tilesFrom": [
-        25,
-        26
-      ],
-      "tilesTo": [
-        27
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 7
     },
     {
       "tilesFrom": [
@@ -92,71 +67,6 @@
     },
     {
       "tilesFrom": [
-        33,
-        34
-      ],
-      "tilesTo": [
-        38,
-        37
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 10
-    },
-    {
-      "tilesFrom": [
-        35,
-        36
-      ],
-      "tilesTo": [
-        38,
-        37
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 11
-    },
-    {
-      "tilesFrom": [
-        39,
-        40
-      ],
-      "tilesTo": [
-        41,
-        42
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 12
-    },
-    {
-      "tilesFrom": [
-        45,
-        46
-      ],
-      "tilesTo": [
-        44,
-        43
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 13
-    },
-    {
-      "tilesFrom": [
-        47,
-        48
-      ],
-      "tilesTo": [
-        49,
-        50
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 14
-    },
-    {
-      "tilesFrom": [
         51,
         52
       ],
@@ -167,91 +77,6 @@
       "operator1": "",
       "operator2": "",
       "id": 15
-    },
-    {
-      "tilesFrom": [
-        58,
-        59,
-        60
-      ],
-      "tilesTo": [
-        55,
-        56,
-        57
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 16
-    },
-    {
-      "tilesFrom": [
-        63,
-        64
-      ],
-      "tilesTo": [
-        61,
-        62
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 17
-    },
-    {
-      "tilesFrom": [
-        65,
-        66
-      ],
-      "tilesTo": [
-        67,
-        68
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 18
-    },
-    {
-      "tilesFrom": [
-        72
-      ],
-      "tilesTo": [
-        71
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 19
-    },
-    {
-      "tilesFrom": [
-        71
-      ],
-      "tilesTo": [
-        69
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 20
-    },
-    {
-      "tilesFrom": [
-        69
-      ],
-      "tilesTo": [
-        70
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 21
-    },
-    {
-      "tilesFrom": [
-        70
-      ],
-      "tilesTo": [
-        72
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 22
     },
     {
       "tilesFrom": [
@@ -276,18 +101,6 @@
       "operator1": "",
       "operator2": "",
       "id": 24
-    },
-    {
-      "tilesFrom": [
-        80
-      ],
-      "tilesTo": [
-        81,
-        79
-      ],
-      "operator1": "",
-      "operator2": "",
-      "id": 25
     },
     {
       "tilesFrom": [
@@ -385,30 +198,6 @@
     {
       "text": "",
       "truthValue": null,
-      "x": 175,
-      "y": -451,
-      "z": 443,
-      "id": 14
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 810,
-      "y": -521,
-      "z": 446,
-      "id": 15
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 177,
-      "y": -570,
-      "z": 444,
-      "id": 16
-    },
-    {
-      "text": "",
-      "truthValue": null,
       "x": 1396,
       "y": -395,
       "z": 270,
@@ -429,14 +218,6 @@
       "y": -387,
       "z": 271,
       "id": 19
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 596,
-      "y": -496,
-      "z": 445,
-      "id": 20
     },
     {
       "text": "",
@@ -473,30 +254,6 @@
     {
       "text": "",
       "truthValue": null,
-      "x": 1671,
-      "y": -626,
-      "z": 272,
-      "id": 25
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 1408,
-      "y": -622,
-      "z": 273,
-      "id": 26
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 1116,
-      "y": -563,
-      "z": 274,
-      "id": 27
-    },
-    {
-      "text": "",
-      "truthValue": null,
       "x": 1660,
       "y": -218,
       "z": 268,
@@ -529,150 +286,6 @@
     {
       "text": "",
       "truthValue": null,
-      "x": -208,
-      "y": -626,
-      "z": 308,
-      "id": 33
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -211,
-      "y": -517,
-      "z": 307,
-      "id": 34
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -217,
-      "y": -354,
-      "z": 309,
-      "id": 35
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -215,
-      "y": -249,
-      "z": 310,
-      "id": 36
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -724,
-      "y": -462,
-      "z": 367,
-      "id": 37
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -518,
-      "y": -462,
-      "z": 366,
-      "id": 38
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1707,
-      "y": 323,
-      "z": 312,
-      "id": 39
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1463,
-      "y": 327,
-      "z": 313,
-      "id": 40
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1042,
-      "y": 780,
-      "z": 318,
-      "id": 41
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1047,
-      "y": 964,
-      "z": 317,
-      "id": 42
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1362,
-      "y": 679,
-      "z": 319,
-      "id": 43
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1377,
-      "y": 507,
-      "z": 320,
-      "id": 44
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -790,
-      "y": 977,
-      "z": 323,
-      "id": 45
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -566,
-      "y": 974,
-      "z": 322,
-      "id": 46
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1047,
-      "y": 271,
-      "z": 324,
-      "id": 47
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -800,
-      "y": 272,
-      "z": 325,
-      "id": 48
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -541,
-      "y": 661,
-      "z": 398,
-      "id": 49
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -333,
-      "y": 551,
-      "z": 399,
-      "id": 50
-    },
-    {
-      "text": "",
-      "truthValue": null,
       "x": -274,
       "y": 753,
       "z": 397,
@@ -701,150 +314,6 @@
       "y": 299,
       "z": 395,
       "id": 54
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1255,
-      "y": -782,
-      "z": 354,
-      "id": 55
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1047,
-      "y": -782,
-      "z": 353,
-      "id": 56
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -841,
-      "y": -786,
-      "z": 355,
-      "id": 57
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1272,
-      "y": -159,
-      "z": 350,
-      "id": 58
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1053,
-      "y": -165,
-      "z": 351,
-      "id": 59
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -847,
-      "y": -166,
-      "z": 352,
-      "id": 60
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -707,
-      "y": -620,
-      "z": 402,
-      "id": 61
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -724,
-      "y": -320,
-      "z": 403,
-      "id": 62
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1229,
-      "y": -548,
-      "z": 386,
-      "id": 63
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1230,
-      "y": -400,
-      "z": 387,
-      "id": 64
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1771,
-      "y": -785,
-      "z": 370,
-      "id": 65
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1466,
-      "y": -789,
-      "z": 383,
-      "id": 66
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1754,
-      "y": -163,
-      "z": 385,
-      "id": 67
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1486,
-      "y": -161,
-      "z": 384,
-      "id": 68
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1774,
-      "y": -596,
-      "z": 391,
-      "id": 69
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1763,
-      "y": -357,
-      "z": 392,
-      "id": 70
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1463,
-      "y": -594,
-      "z": 390,
-      "id": 71
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": -1490,
-      "y": -366,
-      "z": 389,
-      "id": 72
     },
     {
       "text": "",
@@ -897,34 +366,26 @@
     {
       "text": "",
       "truthValue": null,
-      "x": 214,
-      "y": -740,
-      "z": 454,
-      "id": 79
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 539,
-      "y": -727,
-      "z": 457,
-      "id": 80
-    },
-    {
-      "text": "",
-      "truthValue": null,
-      "x": 881,
-      "y": -734,
-      "z": 456,
-      "id": 81
-    },
-    {
-      "text": "",
-      "truthValue": null,
       "x": 1740,
       "y": 207,
       "z": 480,
       "id": 82
+    },
+    {
+      "text": "",
+      "truthValue": false,
+      "x": 2794,
+      "y": 1411,
+      "z": 482,
+      "id": 84
+    },
+    {
+      "text": "",
+      "truthValue": true,
+      "x": -874,
+      "y": -445,
+      "z": 483,
+      "id": 85
     }
   ]
 }

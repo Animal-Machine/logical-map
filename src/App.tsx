@@ -359,29 +359,31 @@ function App() {
         setArrows={setArrows}
         changeModeState={changeModeState}
       />
-      <BoardComponent
-        addTile={addTile}
-        deleteTile={deleteTile}
-        patchTile={patchTile}
-        mergeTileData={mergeTileData}
-        updateTileTruthValue={updateTileTruthValue}
-        updateTileText={updateTileText}
-        tilesContent={tilesContent}
-        tilesXY={tilesXY}
-        setTilesXY={setTilesXY}
-        tilesZ={tilesZ}
-        setTilesZ={setTilesZ}
-        zMax={zMax}
-        setZMax={setZMax}
-        arrows={arrows}
-        setArrows={setArrows}
-        modeState={modeState}
-        setModeState={setModeState}
-        tileSelection={tileSelection}
-        setTileSelection={setTileSelection}
-        addArrow={addArrow}
-        deleteArrow={deleteArrow}
-      />
+      <div className="Board-container">
+        <BoardComponent
+          addTile={addTile}
+          deleteTile={deleteTile}
+          patchTile={patchTile}
+          mergeTileData={mergeTileData}
+          updateTileTruthValue={updateTileTruthValue}
+          updateTileText={updateTileText}
+          tilesContent={tilesContent}
+          tilesXY={tilesXY}
+          setTilesXY={setTilesXY}
+          tilesZ={tilesZ}
+          setTilesZ={setTilesZ}
+          zMax={zMax}
+          setZMax={setZMax}
+          arrows={arrows}
+          setArrows={setArrows}
+          modeState={modeState}
+          setModeState={setModeState}
+          tileSelection={tileSelection}
+          setTileSelection={setTileSelection}
+          addArrow={addArrow}
+          deleteArrow={deleteArrow}
+        />
+      </div>
     </div>
   );
 }

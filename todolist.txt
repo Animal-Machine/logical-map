@@ -9,7 +9,6 @@ Import / export
 
 Board
 ¯¯¯¯¯
-Empêcher d'en sortir
 L'agrandir lorsque l'utilisateur arrive au bord
 
 Expérience utilisateur

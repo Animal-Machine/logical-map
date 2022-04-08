@@ -1,3 +1,5 @@
+$app-header-size: 100px;
+
 $board-color:      #384048;
 $board-color-dark: #21262b;
 
@@ -27,19 +29,26 @@ $false-color-darkest-greyed: #422424; // 20 %, 30 %
 .App {
   width: 100vw;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .App-header {
-  height: 100px;
+  flex-shrink: 0;
+  height: $app-header-size;
   width: 100%;
-  background-color: white;
-  position: absolute;
   z-index: 1;
+  background-color: white;
+  user-select: none;
+}
+
+.Board-container {
+  height: 100%;
+  z-index: 0;
 }
 
 .Board {
-  position: absolute;
-  z-index: 0;
+  position: relative;
   width: 3840px;
   height: 2160px;
   background-color: $board-color;
@@ -224,3 +233,7 @@ $false-color-darkest-greyed: #422424; // 20 %, 30 %
  * hence the div inside the DeleteArrow-class button. */
   opacity: 1;
 }
+
+:export {
+  appHeaderSize: $app-header-size;
+} // TODO configure webpack to use this
