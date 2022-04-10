@@ -10,8 +10,69 @@
   height: 100px;
   width: 100%;
   z-index: 1;
-  background-color: white;
+  display: flex;
+  justify-content: center;
+  background-color: #fffafa;
+  box-sizing: border-box;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
   user-select: none;
+}
+.App-header button {
+  width: 100px;
+<<<<<<< HEAD
+  font-size: 15px;
+  cursor: pointer;
+  outline: none;
+  transition-duration: 0.7s;
+  color: #7a6666;
+  background-color: #fffafa;
+  border: none;
+  border-left: 2px solid #b8a9a9;
+}
+.App-header button:hover {
+  color: #3a1313;
+  background-color: #b8a9a9;
+=======
+  background-color: #fffafa;
+  border: none;
+  border-left: 2px solid #b8a9a9;
+  color: #7a6666;
+  font-size: 15px;
+  transition-duration: 0.7s;
+  cursor: pointer;
+>>>>>>> d5f5971 (Make the header beautiful)
+}
+.App-header button:last-child {
+  border-right: 2px solid #b8a9a9;
+}
+<<<<<<< HEAD
+.App-header button:active {
+  color: #330000;
+  background-image: linear-gradient(#7a6666 0 0);
+  border-image: linear-gradient(#7a6666 0 0);
+  transition-duration: 0s;
+}
+.App-header button:active + button {
+  border-image: linear-gradient(90deg, #7a6666 0%, #b8a9a9 100%);
+  border-image-slice: 0 1 0 1;
+=======
+.App-header button:hover {
+  background-color: #b8a9a9;
+  color: #3a1313;
+}
+.App-header button:active {
+  background-color: #7a6666;
+  border-left: 2px solid #7a6666;
+  color: #330000;
+  transition-duration: 0s;
+}
+.App-header button:active:last-child {
+  border-right: 2px solid #7a6666;
+}
+.App-header button:active + button {
+  border-left: 2px solid #7a6666;
+  transition-duration: 0s;
+>>>>>>> d5f5971 (Make the header beautiful)
 }
 
 .Board-container {
@@ -121,7 +182,7 @@
 .TileMenu {
   box-sizing: border-box;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
-  background-color: snow;
+  background-color: #fffafa;
   display: flex;
   justify-content: center;
   align-items: center;
