@@ -14,7 +14,6 @@ L'agrandir lorsque l'utilisateur arrive au bord
 Expérience utilisateur
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Indications pour placer les flèches à branches
-Clic simple dans le vide pour passer de "from" à "to"
 Bouton "clear board"
 
 Types de flèche
@@ -43,8 +42,6 @@ Ajouter une fonctionnalité automatique de reset z-order quand une erreur est tr
 
 Examiner à nouveau mon useEffect() avec openedMenu dans Tile.tsx
 
-Remplacer le plus possible de ": any" dans Tile.tsx et Board.tsx
-
 
 Améliorations techniques
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -55,13 +52,9 @@ Remplacer tous les for-in par des for-of
 
 Optimiser les performances avec useMemo et useCallback
 
-Ajouter des switch() quand c'est possible
-
 Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
 
 Regarder comment mettre React à jour
-
-Gérer le reset des z-values côté backend.
 
 Mieux organiser les conditions dans calculateArrowCoords, dans arrowFunctions.ts
 
@@ -91,6 +84,8 @@ Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
 
 Corriger le clignotement lors du placement des flèches en changeant le type de mouseTarget et mousePosition
 
+La commonHorizontal/VerticalLine d'une flèche peut être positionnée au milieu
+
 
 Améliorations de l'expérience utilisateur
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -103,6 +98,7 @@ Sélection rectangulaire
 
 Fonctionnalités futures
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Édition en ligne à plusieurs utilisateurs
 Nouveau composant : l'union
 Probabilités
 Permettre de zoomer et de dézoomer

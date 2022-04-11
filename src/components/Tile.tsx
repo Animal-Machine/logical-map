@@ -36,12 +36,27 @@ const TileComponent = forwardRef((props: any, ref: any) => {
   const height = 90;
 
 
-  // Tile behaviour depending on mode
-
   const [readOnly, setReadOnly] = useState(true);
     // state used for edition mode
 
-  function onMouseDown(e: MouseEvent) {
+  function enterTextEditionMode(e: React.MouseEvent) {
+    e.stopPropagation();
+    setReadOnly(false);
+    setModeState('default'); // overrides arrow mode
+    setTileSelection(new TileSelection());
+  }
+
+  function quitTextEditionMode(e: React.FocusEvent | React.KeyboardEvent) {
+    setReadOnly(true);
+    // Ensure that text is unselected to avoid drag problem:
+    (e.target as HTMLInputElement).selectionStart = 0;
+    (e.target as HTMLInputElement).selectionEnd = 0;
+  }
+
+  // Tile behaviour depending on mode
+
+  function onMouseDown(e: React.MouseEvent) {
+
     switch(modeState) {
 
       case 'singleArrow':
@@ -162,25 +177,18 @@ const TileComponent = forwardRef((props: any, ref: any) => {
           if (modeState === 'default') {openMenu()}
         }}
 
-        // Enter text edition mode (overrides arrow mode):
-        onDoubleClick = {e => {
-          e.stopPropagation();
-          setReadOnly(false);
-          setModeState('default');
-          setTileSelection(new TileSelection());
+        // Needed particularly for branched arrow placement:
+        onClick = {(e: React.MouseEvent) => e.stopPropagation()}
+
+        // Text edition mode:
+        onDoubleClick = {enterTextEditionMode}
+        onBlur = {quitTextEditionMode}
+        onKeyUp = {(e: React.KeyboardEvent) => {
+          if (e.code === 'Escape') { quitTextEditionMode(e); }
         }}
 
         // Update state when user writes text:
-        onChange = {e => updateText(tile.id, e.target.value)}
-
-        // Quit text edition mode:
-        onBlur = {e => {
-          setReadOnly(true);
-          // Ensure that text is unselected
-          // to avoid drag problem:
-          e.target.selectionStart = 0;
-          e.target.selectionEnd = 0;
-        }}
+        onChange = {(e: React.ChangeEvent) => updateText(tile.id, (e.target as HTMLTextAreaElement).value)}
 
         spellCheck = "false"
         readOnly = {readOnly}

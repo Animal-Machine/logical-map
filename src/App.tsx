@@ -23,7 +23,7 @@ function App() {
 
     const preventDef = (e: MouseEvent) => e.preventDefault();
 
-    const keydown = (e: KeyboardEvent) => {
+    const keyup = (e: KeyboardEvent) => {
       switch(e.code) {
 
         case 'Escape':
@@ -33,18 +33,23 @@ function App() {
           break;
 
         case 'Enter':
-          // Finalize arrow placement
-          if (modeState === 'branchedArrow1' && tileSelection.tilesFrom.length > 0) {
-            setModeState('branchedArrow2');
-          }
-          else if (modeState === 'branchedArrow2' && tileSelection.tilesTo.length > 0) {
-            addArrow(tileSelection.tilesFrom, tileSelection.tilesTo, '', ''); // also sets modeState and tileSelection to their default value
-          }
+          nextStep();
           break;
 
         case 'Backspace':
           goBack();
           break;
+      }
+    }
+
+    const nextStep = () => {
+      // Choose "to" tiles
+      if (modeState === 'branchedArrow1' && tileSelection.tilesFrom.length > 0) {
+        setModeState('branchedArrow2');
+      }
+      // Finalize arrow placement
+      else if (modeState === 'branchedArrow2' && tileSelection.tilesTo.length > 0) {
+        addArrow(tileSelection.tilesFrom, tileSelection.tilesTo, '', ''); // also sets modeState and tileSelection to their default value
       }
     }
 
@@ -88,13 +93,15 @@ function App() {
     // On Mount:
     window.addEventListener('contextmenu', preventDef);
     window.addEventListener('contextmenu', goBack);
-    window.addEventListener('keydown', keydown);
+    window.addEventListener('click', nextStep);
+    window.addEventListener('keyup', keyup);
 
     return () => {
       // On Unmount:
       window.removeEventListener('contextmenu', preventDef);
       window.removeEventListener('contextmenu', goBack);
-      window.removeEventListener('keydown', keydown);
+      window.removeEventListener('click', nextStep);
+      window.removeEventListener('keyup', keyup);
     }
 
   }, [modeState, tileSelection])
