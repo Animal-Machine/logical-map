@@ -32,6 +32,10 @@ const TileComponent = forwardRef((props: any, ref: any) => {
 
 
 
+  const width = 180;
+  const height = 90;
+
+
   // Tile behaviour depending on mode
 
   const [readOnly, setReadOnly] = useState(true);
@@ -121,9 +125,9 @@ const TileComponent = forwardRef((props: any, ref: any) => {
 
         style = {{
           position: "absolute",
-          left: tile.x + origin[0] - 86,
-          top: tile.y + origin[1]-50 - 40,
-          width: 172,
+          left: tile.x + origin[0] - width/2,
+          top: tile.y + origin[1]-50 - height/2,
+          width: width,
           height: 45,
           zIndex: tile.z+1,
         }}
@@ -142,10 +146,10 @@ const TileComponent = forwardRef((props: any, ref: any) => {
         }
         style = {{
           position: "absolute",
-          left: tile.x + origin[0] - 86,
-          top: tile.y + origin[1] - 40,
-          width: 172,
-          height: 80,
+          left: tile.x + origin[0] - width/2,
+          top: tile.y + origin[1] - height/2,
+          width: width,
+          height: height,
           resize: "none",
           zIndex: tile.z,
         }}

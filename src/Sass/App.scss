@@ -77,7 +77,7 @@ $false-color-darkest-greyed: #422424; // 20 %, 30 %
     &:last-child {
       border-right: 2px solid $menu-color-darker;
     }
-    
+
     &:active {
       // I want an instant transition in both ways, but "transition-duration: 0s" only works from
       // :hover to :active and not the other way around. Using an image allows to ignore this property.

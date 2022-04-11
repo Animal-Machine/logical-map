@@ -241,7 +241,7 @@ function App() {
   // Add a new tile
 
   function addTile(tile: TileDataPart) {
-    myPost("tiles", {...tile, z: zMax.z+1})
+    return myPost("tiles", {...tile, z: zMax.z+1})
       .then(() => myGet("tiles"))
         // I need to get the id of the new tile to place arrow, hence this fetch GET
         // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
@@ -353,10 +353,9 @@ function App() {
     <div className="App">
       <AppHeaderComponent
         myGet={myGet}
-        myPost={myPost}
         setTiles={setTiles}
-        arrows={arrows}
-        setArrows={setArrows}
+        addTile={addTile}
+        addArrow={addArrow}
         changeModeState={changeModeState}
       />
       <div className="Board-container">
