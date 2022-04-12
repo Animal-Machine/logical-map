@@ -2,6 +2,7 @@
   "name": "logical-map",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://animal-machine.github.io/logical-map",
   "dependencies": {
     "@testing-library/jest-dom": "^5.15.0",
     "@testing-library/react": "^11.2.7",
@@ -20,7 +21,9 @@
     "eject": "react-scripts eject",
     "server": "json-server --watch db.json --port 5000",
     "sass": "sass src/Sass:src/Css --watch --no-source-map",
-    "special": "sass src/Sass:src/Css --watch --no-source-map; json-server --watch db.json --port 5000"
+    "special": "sass src/Sass:src/Css --watch --no-source-map; json-server --watch db.json --port 5000",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -41,6 +44,7 @@
     ]
   },
   "devDependencies": {
+    "gh-pages": "^3.2.3",
     "sass": "^1.49.9"
   }
 }
