@@ -68,8 +68,6 @@ Rechercher et remplacer toutes les occurences de "mouseX/mousePosition.x/… - b
 
 Améliorations graphiques
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Nouveau logo
-
 Mettre une plus jolie icône de suppression : https://iconscout.com/icon/delete-736
 
 CSS cursor: grab et grabbing pour les tuiles
@@ -89,8 +87,6 @@ La commonHorizontal/VerticalLine d'une flèche peut être positionnée au milieu
 
 Améliorations de l'expérience utilisateur
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-ECHAP pour quitter le mode texte
-
 Les tuiles déjà reliées par une flèche sont grisées dans le mode de positionnement de flèche, pour indiquer à l'utilisateur qu'il ne peut pas les re-relier.
 
 Sélection rectangulaire
