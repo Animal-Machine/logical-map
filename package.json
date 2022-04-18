@@ -2,7 +2,7 @@
   "name": "logical-map",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://animal-machine.github.io/logical-map",
+  "homepage": ".",
   "engines": {
     "node": "17.9.0"
   },
@@ -10,6 +10,7 @@
     "json-server": "^0.17.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -48,7 +49,6 @@
     "@types/react": "^18.0.5",
     "@types/react-dom": "^18.0.1",
     "gh-pages": "^3.2.3",
-    "react-scripts": "^5.0.1",
     "sass": "^1.50.0",
     "typescript": "^4.6.3"
   }
