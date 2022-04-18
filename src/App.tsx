@@ -121,7 +121,7 @@ function App() {
 
   // Custom fetch functions
 
-  const myServerAddress = "http://localhost:5000/";
+  const myServerAddress = "https://logical-map-server.herokuapp.com/";
 
   const myGet = async (address: Address) => {
     const res = await fetch(myServerAddress + address);
