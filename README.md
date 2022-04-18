@@ -8,6 +8,8 @@ In the future, Logical Map will be able to compute truth values based on chosen 
 
 For now, it is in development. You still can color tiles to represent their truth value (unknown, false or true).
 
+The demo is available [here](https://animal-machine.github.io/logical-map/).
+
 Have fun!
 
 ![LogicalMapPresentationScreenshot](https://user-images.githubusercontent.com/64431070/163015786-7c97f8a2-2ee6-4f96-a6e9-4f153729f58d.png)
