@@ -1,11 +1,12 @@
-import { Address, TileData, TileDataPart } from '../types/tiles';
-import { Arrow, AddArrow, Mode } from '../types/arrows';
+import { Address } from '../types/types';
+import { TileData, TileDataPart } from '../types/tiles';
+import { ArrowData, AddArrow, Mode } from '../types/arrows';
 
 
 export default function AppHeaderComponent(props: any) {
 
-  const myGet:              (address: Address) => Promise<any>
-    = props.myGet; 
+  const getCookie:          (address: Address) => object[]
+    = props.getCookie;
   const setTiles:           (tiles: TileData[]) => void
     = props.setTiles; 
   const addTile:            (tile: TileDataPart) => void
@@ -37,17 +38,10 @@ export default function AppHeaderComponent(props: any) {
         y: 450,
       }
     ];
-    (async () => {
-      for (const t of demoTiles) {
-        await addTile(t);
-      }
-      myGet("tiles")
-        .then(tiles => {
-          let idMax = 0;
-          tiles.forEach((t: TileData) => { if (t.id > idMax) { idMax = t.id; } })
-          addArrow([idMax - 2, idMax - 1], idMax);
-        })
-    })();
+    for (const t of demoTiles) { addTile(t); }
+    let idMax = 0;
+    (getCookie("tiles") as TileData[]).forEach((t: TileData) => { if (t.id > idMax) { idMax = t.id; } })
+    addArrow([idMax - 2, idMax - 1], idMax);
   }
 
   return(

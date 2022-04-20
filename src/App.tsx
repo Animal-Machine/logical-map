@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import './Sass/App.scss';
+
 import BoardComponent from './components/Board';
 import AppHeaderComponent from './components/AppHeader';
-import { Address, TileXY, TileZ, TileContent, TileDataPart, TileData, TileSelection } from './types/tiles';
-import { Operator, Arrow, Mode } from './types/arrows';
+
+import { Address, Method, Data, isData, isDataArray } from './types/types';
+import { TileXY, TileZ, TileContent, TileDataPart, TileData, TileSelection } from './types/tiles';
+import { Operator, ArrowData, Mode } from './types/arrows';
 
 
 function App() {
@@ -119,32 +122,58 @@ function App() {
 
 
 
-  // Custom fetch functions
+  // Functions to store and retrieve data in cookies
 
-  const myServerAddress = "https://logical-map-server.herokuapp.com/";
-
-  const myGet = async (address: Address) => {
-    const res = await fetch(myServerAddress + address);
-    return await res.json();
+  function getCookie(address: Address): any {
+    for (let cookie of document.cookie.split('; ')) {
+      let c = cookie.split('=');
+      if (c[0] === address) {
+        return JSON.parse(c[1]);
+      }
+    }
+    return [];
   };
 
-  const myPost = async (address: Address, data: object) => {
-    return await fetch(myServerAddress + address, {
-      method: 'POST',
-      headers: {'Content-type': 'application/json'},
-      body: JSON.stringify(data),
-    });
+  function writeCookie(address: Address, dataArray: Data[]) {
+    document.cookie = address + "=" + JSON.stringify(dataArray) + `;max-age=${30*24*60*60}`;
   };
 
-  const myPatch = async (address: Address, id: number, updatedProperties: object) => {
-    return await fetch(`${myServerAddress}${address}/${id}`, {
-      method: 'PATCH',
-      headers: {'Content-type': 'application/json'},
-      body: JSON.stringify(updatedProperties),
-    });
+  function changeCookieData(address: Address, data: object, method: Method, id: number|undefined = undefined) {
+    let dataArray = getCookie(address);
+    if (isDataArray(dataArray)) {
+      switch(method) {
+        case "post":
+          let idMax = 0;
+          for (let d of dataArray) {
+            if (d.id > idMax) { idMax = d.id; }
+          }
+          dataArray.push({...data, id: idMax+1});
+          writeCookie(address, dataArray);
+          break;
+        case "delete":
+          writeCookie(address, dataArray.filter((d: Data) => d.id !== id));
+          break;
+        case "patch":
+          writeCookie(address, dataArray.map((d: Data) => d.id !== id ? d : {...d, ...data}));
+          break;
+      }
+    }
+    else {
+      throw new Error("The Cookie is not of type DataArray.");
+    }
   }
 
-  const patchTile = (id: number, updatedProperties: object) => myPatch("tiles", id, updatedProperties)
+  function postCookieData(address: Address, data: object) {
+    changeCookieData(address, data, "post");
+  }
+  function deleteCookieData(address: Address, id: number) {
+    changeCookieData(address, {}, "delete", id);
+  }
+  function patchCookieData(address: Address, id: number, data: object) {
+    changeCookieData(address, data, "patch", id);
+  }
+
+  const patchTile = (id: number, updatedProperties: object) => patchCookieData("tiles", id, updatedProperties)
 
 
   // Tiles and Arrows States
@@ -161,50 +190,38 @@ function App() {
   const [zMax, setZMax] = useState<TileZ>({z:0, id:0});
     // contains the highest z coordinate, used when putting a tile to the foreground
 
-  const [arrows, setArrows] = useState<Arrow[]>([]);
+  const [arrows, setArrows] = useState<ArrowData[]>([]);
     // contains the properties "tilesFrom", "tilesTo" (ids of the linked tiles) and "id"
 
 
   // Loading tiles and arrows on page
 
   useEffect(() => {
-    myGet("tiles")
-      .then((tiles: TileData[]): [TileData[], boolean] => {
-        if (tiles.length === 0) {
-          // If there is no tile, zMax is reset to 0:
-          setZMax({id: 0, z: 0});
-          // Because of this "false", the next "then" is practically going to be ignored:
-          return([tiles, false]);
-        }
-        let zValues = tiles.map((t: TileData) => t.z);
-        let max = Math.max(...zValues);
-        let id = tiles.filter((t: TileData) => t.z === max)[0].id
-        // if the highest z is too big, we reset z values to keep them reasonably small:
-        if (max > 50 * zValues.length) {
-          zValues.sort(); // to keep the z-order, we use the indexes of the z values
-          setZMax({id: id, z: zValues.length}); // zMax initialization (reset)
-          return([tiles.map((t: TileData) => ({...t, z: zValues.indexOf(t.z)+1})), true]);
-            // tiles with updated z are passed on to "then"
-        }
+    let loadedTiles = getCookie("tiles");
+    if (loadedTiles.length === 0) {
+      // If there is no tile, zMax is reset to 0:
+      setZMax({id: 0, z: 0});
+    }
+    else {
+      let zValues = loadedTiles.map((t: TileData) => t.z);
+      let max = Math.max(...zValues);
+      let id = loadedTiles.filter((t: TileData) => t.z === max)[0].id
+      // if the highest z is too big, we reset z values to keep them reasonably small:
+      // TODO do the same for id or delete this, for consistency
+      if (max > 50 * zValues.length) {
+        zValues.sort(); // to keep the z-order, we use the indexes of the z values
+        setZMax({id: id, z: zValues.length}); // zMax initialization (reset)
+        loadedTiles = loadedTiles.map((t: TileData) => ({...t, z: zValues.indexOf(t.z)+1}));
+        for (const tile of loadedTiles) {
+          patchTile(tile.id, {z: tile.z});
+        };
+      }
+      else {
         setZMax({id: id, z: max}); // zMax initialization
-        return([tiles, false]);
-      })
-      .then(([tiles, zReset]): Promise<TileData[]> => {
-        // update z on server if needed, and pass "tiles" on again
-        if (zReset) {
-          return (async function() {
-            for (const tile of tiles) {
-              await patchTile(tile.id, {z: tile.z});
-            };
-          })().then(() => tiles);
-        } else {
-          return Promise.resolve(tiles);
-        }
-      })
-      .then(setTiles)
-      .then(() => myGet("arrows"))
-      .then(setArrows)
-      .catch(e => console.error("Couldn't fetch data.", e));
+      }
+    }
+    setTiles(loadedTiles);
+    setArrows(getCookie("arrows"));
   }, []);
 
 
@@ -248,16 +265,10 @@ function App() {
   // Add a new tile
 
   function addTile(tile: TileDataPart) {
-    return myPost("tiles", {...tile, z: zMax.z+1})
-      .then(() => myGet("tiles"))
-        // I need to get the id of the new tile to place arrow, hence this fetch GET
-        // Note: it isn't .then(myGet("tiles")) because .then needs a function, not a promise
-      .then((newTiles: TileData[]) => {
-        setTiles(newTiles);
-        return newTiles.filter((t: TileData) => t.z === zMax.z+1)[0].id;
-      })
-      .then((id: number) => setZMax(zMax => ({id: id, z: zMax.z+1})))
-      .catch((e: Error) => console.error("While adding a new tile:", e));
+    postCookieData("tiles", {...tile, z: zMax.z+1});
+    const updatedTiles = getCookie("tiles");
+    setTiles(updatedTiles);
+    setZMax(zMax => ({id: updatedTiles.filter((t: TileData) => t.z === zMax.z+1)[0].id, z: zMax.z+1}));
   }
 
   // Delete a tile
@@ -265,51 +276,32 @@ function App() {
   function deleteTile(id: number) {
     // deletes arrows tied to the tile first, then the tile itself.
 
-    (async function() {
-      let arrowDeleteList: number[] = [];
-      let arrowPatchFromList: number[] = [];
-      let arrowPatchToList: number[] = [];
-      for (let i = 0; i < arrows.length; i++) {
-        let a = arrows[i];
-        // We assume that the same id cannot be both in tilesFrom and tilesTo.
-        if (a.tilesFrom.includes(id) || a.tilesTo.includes(id)) {
-          if ((a.tilesFrom.length === 1 && a.tilesFrom[0] === id) || (a.tilesTo.length === 1 && a.tilesTo[0] === id)) {
-            await fetch(`${myServerAddress}arrows/${a.id}`, {method: 'DELETE',});
-            arrowDeleteList.push(a.id);
+    for (let i = 0; i < arrows.length; i++) {
+      let a = arrows[i];
+      // We assume that the same id cannot be both in tilesFrom and tilesTo.
+      if (a.tilesFrom.includes(id) || a.tilesTo.includes(id)) {
+        if ((a.tilesFrom.length === 1 && a.tilesFrom[0] === id) || (a.tilesTo.length === 1 && a.tilesTo[0] === id)) {
+          deleteCookieData("arrows", a.id);
+        }
+        else {
+          if (a.tilesFrom.includes(id)) {
+            patchCookieData("arrows", a.id, {tilesFrom: a.tilesFrom.filter((tile: number) => tile !== id)});
           }
           else {
-            if (a.tilesFrom.includes(id)) {
-              await myPatch("arrows", a.id, {tilesFrom: a.tilesFrom.filter((tile: number) => tile !== id)});
-              arrowPatchFromList.push(a.id);
-            }
-            else {
-              await myPatch("arrows", a.id, {tilesTo: a.tilesTo.filter((tile: number) => tile !== id)});
-              arrowPatchToList.push(a.id);
-            }
+            patchCookieData("arrows", a.id, {tilesTo: a.tilesTo.filter((tile: number) => tile !== id)});
           }
         }
       }
-      return {arrowDeleteList: arrowDeleteList, arrowPatchFromList: arrowPatchFromList, arrowPatchToList: arrowPatchToList};
-    })()
-      .then(res => {
-        fetch(`${myServerAddress}tiles/${id}`, {method: 'DELETE',});
-        return res;
-      })
-      .then(({ arrowDeleteList, arrowPatchFromList, arrowPatchToList }) => {
-        setArrows((arrows: Arrow[]) => arrows.filter((a: Arrow) => !arrowDeleteList.includes(a.id))
-                                             .map((a: Arrow) => arrowPatchFromList.includes(a.id) ? {...a, tilesFrom: a.tilesFrom.filter((tile: number) => tile !== id)} : arrowPatchToList.includes(a.id) ? {...a, tilesTo: a.tilesTo.filter((tile: number) => tile !== id)} : a));
-        setTilesContent((t: TileContent[]) => t.filter((tile: TileContent) => tile.id !== id));
-        setTilesXY((t: TileXY[]) => t.filter((tile: TileXY) => tile.id !== id));
-        setTilesZ((t: TileZ[]) => t.filter((tile: TileZ) => tile.id !== id));
-      })
-      .catch((e: Error) => console.error("While deleting arrows:", e));
+    }
+    setArrows(getCookie("arrows"));
+    deleteCookieData("tiles", id);
+    setTiles(getCookie("tiles"));
   }
 
   // Change a tile's truth value
 
   function updateTileTruthValue(id: number, value: boolean|null) {
     patchTile(id, {truthValue: value})
-      .catch((e: Error) => console.error("While setting a tile's new truth value:", e));
     setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
       tile.id===id ? {...tile, truthValue: value} : tile
     ));
@@ -318,9 +310,6 @@ function App() {
   // Change a tile's text
 
   function updateTileText(id: number, text: string) {
-    patchTile(id, {text: text})
-      .catch((e: Error) => console.error("While setting a tile's new text:", e));
-      // Est-ce que ce n'est pas trop gourmand d'envoyer une requête à chaque caractère ajouté ou supprimé ? TODO à réfléchir
     setTilesContent((t: TileContent[]) => t.map((tile: TileContent) =>
       tile.id===id ? {...tile, text:text} : tile
     ));
@@ -339,18 +328,16 @@ function App() {
         operator1: operator1,
         operator2: operator2,
       };
-      myPost("arrows", newArrow)
-        .then(() => myGet("arrows"))
-        .then(setArrows)
-        .then(() => setModeState('default'))
-        .then(() => setTileSelection(new TileSelection()))
-        .catch(e => console.error("While adding new arrow:", e));
+      postCookieData("arrows", newArrow)
+      setArrows(getCookie("arrows"));
+      setModeState('default')
+      setTileSelection(new TileSelection())
     }
   }
 
   function deleteArrow(id: number) {
-    setArrows(arrows => arrows.filter(a => a.id !== id));
-    fetch(`${myServerAddress}arrows/${id}`, {method: 'DELETE'});
+    deleteCookieData("arrows", id);
+    setArrows(getCookie("arrows"));
   }
 
   
@@ -359,7 +346,7 @@ function App() {
   return (
     <div className="App">
       <AppHeaderComponent
-        myGet={myGet}
+        getCookie={getCookie}
         setTiles={setTiles}
         addTile={addTile}
         addArrow={addArrow}
@@ -367,10 +354,12 @@ function App() {
       />
       <div className="Board-container">
         <BoardComponent
+          getCookie={getCookie}
           addTile={addTile}
           deleteTile={deleteTile}
           patchTile={patchTile}
           mergeTileData={mergeTileData}
+          separateTileData={separateTileData}
           updateTileTruthValue={updateTileTruthValue}
           updateTileText={updateTileText}
           tilesContent={tilesContent}

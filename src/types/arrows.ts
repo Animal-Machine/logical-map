@@ -1,12 +1,12 @@
+import { Data } from './types';
 import { Coords, CoordsOrArray } from './graphDrawing';
 
 
 export type Operator = '' | 'NOT' | 'AND' | 'OR';
 
-export interface Arrow {
+export interface ArrowData extends Data {
   tilesFrom: number[]; tilesTo: number[];
   operator1: Operator; operator2: Operator;
-  id: number;
 }
 
 export type AddArrow = (a: number | number[], b: number | number[], operator1?: Operator, operator2?: Operator) => void
@@ -14,8 +14,7 @@ export type AddArrow = (a: number | number[], b: number | number[], operator1?: 
 export type Mode = 'default' | 'singleArrow' | 'branchedArrow1' | 'branchedArrow2';
 
 
-export interface ArrowCoords {
-  id: number;
+export interface ArrowCoords extends Data {
   coords: CoordsOrArray[];
   deleteButtonCoords: Coords;
 }
@@ -25,8 +24,7 @@ export interface ArrowProps extends ArrowCoords {
   highlightedByButton:  boolean;
 }
 
-export interface ArrowHighlight {
-  id: number;
+export interface ArrowHighlight extends Data {
   highlightedByDrawing: boolean;
   highlightedByButton:  boolean;
 }

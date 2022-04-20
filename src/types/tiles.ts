@@ -1,18 +1,16 @@
-export type Address = "tiles" | "arrows";
+import { Data } from './types';
 
-export interface TileXY {
+
+export interface TileXY extends Data {
   x: number; y: number;
-  id: number;
 }
 
-export interface TileZ {
+export interface TileZ extends Data {
   z: number;
-  id: number;
 }
 
-export interface TileContent {
+export interface TileContent extends Data {
   text: string; truthValue: boolean|null;
-  id: number;
 }
 
 export interface TileDataPart {

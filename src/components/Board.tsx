@@ -1,23 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
+
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
 import { calculateArrowCoords, drawAcyclicGraph, isOnGraph } from './arrowFunctions';
-import { TileXY, TileZ, TileContent, TileDataPart, TileData, TileSelection } from '../types/tiles';
-import { Operator, Arrow, AddArrow, Mode, ArrowCoords, ArrowHighlight, HighlightMethod } from '../types/arrows';
-import { Point, Rectangle, Coords, DoubleCoords, CoordsOrArray } from '../types/graphDrawing';
 //import { appHeaderSize } from '../Sass/App';
+
+import { Address } from '../types/types';
+import { TileXY, TileZ, TileContent, TileDataPart, TileData, TileSelection } from '../types/tiles';
+import { Operator, ArrowData, AddArrow, Mode, ArrowCoords, ArrowHighlight, HighlightMethod } from '../types/arrows';
+import { Point, Rectangle, Coords, DoubleCoords, CoordsOrArray } from '../types/graphDrawing';
 
 
 function BoardComponent(props: any) {
 
+  const getCookie:                (address: Address) => any
+    = props.getCookie;
   const addTile:                  (tile: TileDataPart) => void
     = props.addTile;
   const deleteTile:               (id: number) => void
     = props.deleteTile;
-  const patchTile:                (id: number, updatedProperties: object) => Promise<Response>
+  const patchTile:                (id: number, updatedProperties: object) => void
     = props.patchTile;
   const mergeTileData:            (TContent: TileContent[], TXY: TileXY[], TZ: TileZ[]) => TileData[]
     = props.mergeTileData;
+  const separateTileData:         (T: TileData[]) => {content:TileContent[], coordsXY:TileXY[], coordsZ:TileZ[]}
+    = props.separateTileData;
   const updateTileTruthValue:     (id: number, value: boolean|null) => void
     = props.updateTileTruthValue;
   const updateTileText:           (id: number, text: string) => void
@@ -36,9 +43,9 @@ function BoardComponent(props: any) {
     = props.zMax;
   const setZMax:                  React.Dispatch<React.SetStateAction<TileZ>>
     = props.setZMax;
-  const arrows:                   Arrow[]
+  const arrows:                   ArrowData[]
     = props.arrows;
-  const setArrows:                React.Dispatch<React.SetStateAction<Arrow[]>>
+  const setArrows:                React.Dispatch<React.SetStateAction<ArrowData[]>>
     = props.setArrows;
   const modeState:                Mode
     = props.modeState;
@@ -190,10 +197,11 @@ function BoardComponent(props: any) {
 
   function dragTile(e: MouseEvent) {
     setTilesXY((t: TileXY[]) => t.map((tile: TileXY) =>
-      tile.id===movingTileId ? { id: tile.id,
-                                 x: e.clientX-mouseRelToEltX,
-                                 y: e.clientY-mouseRelToEltY } 
-                             : tile
+      tile.id !== movingTileId ? tile : {
+        id: tile.id,
+        x: e.clientX-mouseRelToEltX,
+        y: e.clientY-mouseRelToEltY
+      }
     ));
   };
 
@@ -201,8 +209,8 @@ function BoardComponent(props: any) {
     patchTile(movingTileId!, {
       x: e.clientX-mouseRelToEltX,
       y: e.clientY-mouseRelToEltY,
-      //z: zMax.z // If in the future, there are errors because of too many concurrent patches, this could be a way to fix it. Unfortunately, zMax is sometimes at its current state, sometimes not. A solution could be to make foreground function to return zMax.z
-    }).catch((e: Error) => console.error("While setting a tile's new coordinates:", e));
+    });
+    setTilesXY(separateTileData(getCookie("tiles")).coordsXY);
     window.removeEventListener('mousemove', dragTile);
     window.removeEventListener('mouseup', stopDraggingTile);
     movingTileId = null;
@@ -212,14 +220,9 @@ function BoardComponent(props: any) {
 
   function foreground(id: number) {
     if (id !== zMax.id) {
-      patchTile(id, {z: zMax.z+1})
-        .then(() => {
-          setTilesZ((t: TileZ[]) => t.map((tile: TileZ) =>
-            tile.id===id ? {id: id, z: zMax.z+1} : tile
-          ));
-        })
-        .then(() => setZMax((zMax: TileZ) => ({id: id, z: zMax.z+1})))
-        .catch((e: Error) => console.error("While moving a tile to the foreground:", e));
+      patchTile(id, {z: zMax.z+1});
+      setTilesZ(separateTileData(getCookie("tiles")).coordsZ);
+      setZMax((zMax: TileZ) => ({id: id, z: zMax.z+1}))
     }
   }
 
@@ -291,7 +294,7 @@ function BoardComponent(props: any) {
 
   useEffect(() => {
     // converts arrows to arrowsCoords
-    setArrowsCoords(arrows.map((a: Arrow) => {
+    setArrowsCoords(arrows.map((a: ArrowData) => {
 
       // References to the DOM objects representing the tiles
       let tilesFromRefs = a.tilesFrom.map(t => tileRefs[t-1]);
@@ -333,7 +336,7 @@ function BoardComponent(props: any) {
 
   useEffect(() => {
     // converts arrows to arrowsHighlight
-    setArrowsHighlight(arrows.map((a: Arrow) => ({id: a.id, highlightedByDrawing: false, highlightedByButton: false})));
+    setArrowsHighlight(arrows.map((a: ArrowData) => ({id: a.id, highlightedByDrawing: false, highlightedByButton: false})));
   }, [arrows]);
 
   /// Draw all arrows
@@ -446,6 +449,7 @@ function BoardComponent(props: any) {
           startDragging={startDraggingTile}
           updateTruthValue={updateTileTruthValue}
           updateText={updateTileText}
+          saveText={(id: number, t: string) => {patchTile(id, {text: t});}}
           modeState={modeState}
           setModeState={setModeState}
           tileSelection={tileSelection}

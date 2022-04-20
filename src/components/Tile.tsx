@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, forwardRef, MouseEvent } from 'react';
+
 import TileMenuComponent from './TileMenu';
+
 import { TileData, TileSelection, UpdateTruthValue } from '../types/tiles';
 import { Operator, Mode, AddArrow } from '../types/arrows';
 import { Coords } from '../types/graphDrawing';
@@ -19,6 +21,8 @@ const TileComponent = forwardRef((props: any, ref: any) => {
     = props.updateTruthValue;
   const updateText:           (id: number, text: string) => void
     = props.updateText;
+  const saveText:             (id: number, text: string) => void
+    = props.saveText;
   const modeState:            Mode
     = props.modeState;
   const setModeState:         React.Dispatch<React.SetStateAction<Mode>>
@@ -51,6 +55,7 @@ const TileComponent = forwardRef((props: any, ref: any) => {
     // Ensure that text is unselected to avoid drag problem:
     (e.target as HTMLInputElement).selectionStart = 0;
     (e.target as HTMLInputElement).selectionEnd = 0;
+    saveText(tile.id, (e.target as HTMLTextAreaElement).value);
   }
 
   // Tile behaviour depending on mode
