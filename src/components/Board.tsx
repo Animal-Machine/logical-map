@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef } from 'react';
 
 import TileComponent from './Tile';
 import ArrowComponent from './Arrow';
@@ -11,8 +11,10 @@ import { Operator, ArrowData, AddArrow, Mode, ArrowCoords, ArrowHighlight, Highl
 import { Point, Rectangle, Coords, DoubleCoords, CoordsOrArray } from '../types/graphDrawing';
 
 
-function BoardComponent(props: any) {
+const BoardComponent = forwardRef((props: any, ref: any) => {
 
+  const zMaxRef//:                  React.RefObject<TileZ>
+    = ref;
   const getCookie:                (address: Address) => any
     = props.getCookie;
   const addTile:                  (tile: TileDataPart) => void
@@ -39,10 +41,6 @@ function BoardComponent(props: any) {
     = props.tilesZ;
   const setTilesZ:                React.Dispatch<React.SetStateAction<TileZ[]>>
     = props.setTilesZ;
-  const zMax:                     TileZ
-    = props.zMax;
-  const setZMax:                  React.Dispatch<React.SetStateAction<TileZ>>
-    = props.setZMax;
   const arrows:                   ArrowData[]
     = props.arrows;
   const setArrows:                React.Dispatch<React.SetStateAction<ArrowData[]>>
@@ -219,10 +217,10 @@ function BoardComponent(props: any) {
   // Bring a tile to the foreground (called by startDraggingTile)
 
   function foreground(id: number) {
-    if (id !== zMax.id) {
-      patchTile(id, {z: zMax.z+1});
+    if (id !== zMaxRef.current.id) {
+      patchTile(id, {z: zMaxRef.current.z+1});
       setTilesZ(separateTileData(getCookie("tiles")).coordsZ);
-      setZMax((zMax: TileZ) => ({id: id, z: zMax.z+1}))
+      zMaxRef.current = {id: id, z: zMaxRef.current.z+1};
     }
   }
 
@@ -459,6 +457,6 @@ function BoardComponent(props: any) {
       )}
     </div>
   );
-}
+});
 
 export default BoardComponent;

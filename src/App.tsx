@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './Sass/App.scss';
 
 import BoardComponent from './components/Board';
@@ -187,8 +187,7 @@ function App() {
   const [tilesZ, setTilesZ] = useState<TileZ[]>([]);
     // relative height, used by css property z-index
 
-  const [zMax, setZMax] = useState<TileZ>({z:0, id:0});
-    // contains the highest z coordinate, used when putting a tile to the foreground
+  const zMaxRef = useRef<TileZ>({z:0, id:0});
 
   const [arrows, setArrows] = useState<ArrowData[]>([]);
     // contains the properties "tilesFrom", "tilesTo" (ids of the linked tiles) and "id"
@@ -200,7 +199,7 @@ function App() {
     let loadedTiles = getCookie("tiles");
     if (loadedTiles.length === 0) {
       // If there is no tile, zMax is reset to 0:
-      setZMax({id: 0, z: 0});
+      zMaxRef.current = {id: 0, z: 0};
     }
     else {
       let zValues = loadedTiles.map((t: TileData) => t.z);
@@ -210,14 +209,14 @@ function App() {
       // TODO do the same for id or delete this, for consistency
       if (max > 50 * zValues.length) {
         zValues.sort(); // to keep the z-order, we use the indexes of the z values
-        setZMax({id: id, z: zValues.length}); // zMax initialization (reset)
+        zMaxRef.current = {id: id, z: zValues.length}; // zMax initialization (reset)
         loadedTiles = loadedTiles.map((t: TileData) => ({...t, z: zValues.indexOf(t.z)+1}));
         for (const tile of loadedTiles) {
           patchTile(tile.id, {z: tile.z});
         };
       }
       else {
-        setZMax({id: id, z: max}); // zMax initialization
+        zMaxRef.current = {id: id, z: max}; // zMaxRef.current initialization
       }
     }
     setTiles(loadedTiles);
@@ -265,10 +264,10 @@ function App() {
   // Add a new tile
 
   function addTile(tile: TileDataPart) {
-    postCookieData("tiles", {...tile, z: zMax.z+1});
+    postCookieData("tiles", {...tile, z: zMaxRef.current.z+1});
     const updatedTiles = getCookie("tiles");
     setTiles(updatedTiles);
-    setZMax(zMax => ({id: updatedTiles.filter((t: TileData) => t.z === zMax.z+1)[0].id, z: zMax.z+1}));
+    zMaxRef.current = {id: updatedTiles.filter((t: TileData) => t.z === zMaxRef.current.z+1)[0].id, z: zMaxRef.current.z+1};
   }
 
   // Delete a tile
@@ -354,6 +353,7 @@ function App() {
       />
       <div className="Board-container">
         <BoardComponent
+          ref={zMaxRef}
           getCookie={getCookie}
           addTile={addTile}
           deleteTile={deleteTile}
@@ -367,8 +367,6 @@ function App() {
           setTilesXY={setTilesXY}
           tilesZ={tilesZ}
           setTilesZ={setTilesZ}
-          zMax={zMax}
-          setZMax={setZMax}
           arrows={arrows}
           setArrows={setArrows}
           modeState={modeState}
