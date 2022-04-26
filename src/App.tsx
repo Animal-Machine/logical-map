@@ -342,6 +342,10 @@ function App() {
   
   // Render
 
+  if (window.matchMedia("(any-hover: none)").matches) {
+    return <>This application requires a mouse device to work.</>;
+  }
+  else {
   return (
     <div className="App">
       <AppHeaderComponent
@@ -379,6 +383,7 @@ function App() {
       </div>
     </div>
   );
+  }
 }
 
 export default App;
