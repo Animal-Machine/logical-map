@@ -180,9 +180,13 @@ const BoardComponent = forwardRef((props: any, ref: any) => {
 
   let movingTileId: number | null = null;
 
+  const [currentlyDraggingTile, setCurrentlyDraggingTile] = useState<boolean>(false);
+    // determines the cursor CSS property
+
   function startDraggingTile(id: number, mouseX: number, mouseY: number) {
     foreground(id);
     movingTileId = id;
+    setCurrentlyDraggingTile(true);
 
     let [{ x:tileInitialX, y:tileInitialY }]: TileXY[]
       = tilesXY.filter((tile:TileXY)=>tile.id===id);
@@ -212,6 +216,7 @@ const BoardComponent = forwardRef((props: any, ref: any) => {
     window.removeEventListener('mousemove', dragTile);
     window.removeEventListener('mouseup', stopDraggingTile);
     movingTileId = null;
+    setCurrentlyDraggingTile(false);
   };
 
   // Bring a tile to the foreground (called by startDraggingTile)
@@ -445,6 +450,7 @@ const BoardComponent = forwardRef((props: any, ref: any) => {
           tile={tile}
           deleteTile={deleteTile}
           startDragging={startDraggingTile}
+          currentlyDragged={currentlyDraggingTile}
           updateTruthValue={updateTileTruthValue}
           updateText={updateTileText}
           saveText={(id: number, t: string) => {patchTile(id, {text: t});}}

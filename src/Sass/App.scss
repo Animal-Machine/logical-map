@@ -134,7 +134,10 @@ $false-color-darkest-greyed: #422424; // 20 %, 30 %
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  cursor: default;
+  cursor: grab;
+  &.Dragged {
+    cursor: grabbing;
+  }
 }
 
 .Tile::selection, .Tile::-moz-selection {

@@ -1,30 +1,25 @@
 Étapes principales
 ––––––––––––––––––
 
-
-Base de données
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Édition
+¯¯¯¯¯¯¯
+Boutons "Undo" et "Redo"
+Bouton "Clear"
 Import / export
-"Undo" button
 
-Board
-¯¯¯¯¯
-L'agrandir lorsque l'utilisateur arrive au bord
 
 Expérience utilisateur
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Indications pour placer les flèches à branches
-Bouton "clear board"
+Application mobile
+Choix de langue
+Tutoriel
+Agrandir le tableau lorsque l'utilisateur arrive au bord
 
-Types de flèche
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Bouton menu flèche
-Flèche NOT
-Flèche AND
-Flèche OR
 
 Calcul déductif
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Bouton menu flèche
+Types de flèche : NOT, AND, OR
 Ajouter la fonctionnalité
 
 
@@ -32,13 +27,9 @@ Ajouter la fonctionnalité
 Étapes secondaires
 ––––––––––––––––––
 
-
 Corrections et préventions de bugs
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Supprimer les « flèches fantômes » (qui n'apparaissent désormais plus à l'écran car l'exception est gérée)
-(À faire côté backend)
-
-Ajouter une fonctionnalité automatique de reset z-order quand une erreur est trouvée.
 
 Examiner à nouveau mon useEffect() avec openedMenu dans Tile.tsx
 
@@ -54,8 +45,6 @@ Optimiser les performances avec useMemo et useCallback
 
 Vérifier si c'est une bonne pratique d'avoir des variables et fonctions seules au milieu de mes composants
 
-Regarder comment mettre React à jour
-
 Mieux organiser les conditions dans calculateArrowCoords, dans arrowFunctions.ts
 
 Supprimer les "null" dans arrowFunctions.ts. Mon code ne devrait pas se reposer là-dessus
@@ -70,8 +59,6 @@ Améliorations graphiques
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Mettre une plus jolie icône de suppression : https://iconscout.com/icon/delete-736
 
-CSS cursor: grab et grabbing pour les tuiles
-
 Triangle en bas de TileMenu
 
 Ajuster la position de TileMenu en fonction de la place sur l'écran
@@ -83,6 +70,8 @@ Regarder parmi toutes mes propriétés CSS lesquelles ont besoin de préfixe.
 Corriger le clignotement lors du placement des flèches en changeant le type de mouseTarget et mousePosition
 
 La commonHorizontal/VerticalLine d'une flèche peut être positionnée au milieu
+
+z-index pour les flèches
 
 
 Améliorations de l'expérience utilisateur

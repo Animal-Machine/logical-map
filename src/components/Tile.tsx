@@ -17,6 +17,8 @@ const TileComponent = forwardRef((props: any, ref: any) => {
     = props.deleteTile;
   const startDragging:        (id: number, mouseX: number, mouseY: number) => void
     = props.startDragging;
+  const currentlyDragged:     boolean
+    = props.currentlyDragged;
   const updateTruthValue:     UpdateTruthValue
     = props.updateTruthValue;
   const updateText:           (id: number, text: string) => void
@@ -161,6 +163,7 @@ const TileComponent = forwardRef((props: any, ref: any) => {
         className = {"Tile" + (tile.truthValue ? " True" : (tile.truthValue===false?" False":""))
                             + (modeState!=='default' ? " ArrowMode" : "")
                             + (readOnly ? "" : " Edition")
+                            + (currentlyDragged ? " Dragged" : "")
                             + ((tileSelection.tilesFrom.includes(tile.id)
                                || tileSelection.tilesTo.includes(tile.id)) ? " Unselectable" : "")
         }
